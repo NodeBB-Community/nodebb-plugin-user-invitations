@@ -1,0 +1,16 @@
+{
+    "id": "nodebb-plugin-newuser-approval"
+   ,"name": "NodeBB New User Approval Plugin"
+   ,"description": "A plugin for NodeBB to allow admins to approve new users."
+   ,"url": "https://github.com/pichalite/nodebb-plugin-newuser-approval"
+   ,"library": "./library.js"
+   ,"staticDirs": {
+        "public": "public"
+    }
+   ,"templates": "public/templates"
+   ,"hooks": [
+        { "hook": "static:app.load", "method": "init" }, 
+        { "hook": "filter:admin.header.build", "method": "admin.menu" },
+        { "hook": "action:user.create", "method": "moveUserToGroup" }
+    ]
+}

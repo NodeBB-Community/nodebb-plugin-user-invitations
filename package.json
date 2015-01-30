@@ -1,0 +1,28 @@
+{
+  "name": "nodebb-plugin-newuser-approval",
+  "version": "0.0.1",
+  "description": "A plugin for NodeBB to allow admins to approve new users.",
+  "main": "library.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pichalite/nodebb-plugin-newuser-approval"
+  },
+  "keywords": [
+    "nodebb",
+    "plugin",
+    "newuser",
+    "approval"
+  ],
+  "author": {
+    "name": "Pichalite",
+    "email": "pichalite.com@gmail.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pichalite/nodebb-plugin-newuser-approval/issues"
+  },
+  "homepage": "https://github.com/pichalite/nodebb-plugin-newuser-approval",
+  "nbbpm": {
+    "compatibility": "^0.6.0"
+  }
+}

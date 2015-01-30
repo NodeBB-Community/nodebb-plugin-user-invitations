@@ -1,0 +1,22 @@
+.new-users img {
+    width: 80px;
+    height: 80px;
+}
+
+#users-container {
+    border: 1px solid #eee;
+    padding: 0 20px 20px;
+}
+
+#users-container .users-box {
+    display: inline-block;
+    margin-top: 20px;
+    text-align: center;
+    vertical-align: top;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    height: auto;
+    max-width: 125px;
+    min-width: 125px;
+}
