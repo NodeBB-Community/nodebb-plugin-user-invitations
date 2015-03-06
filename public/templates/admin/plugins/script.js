@@ -41,16 +41,19 @@ $('#users-container').on('click', 'div[data-uid]', function() {
 });
 
 $(document).ready(function() {
-    socket.emit('admin.groups.get', 'non-approved', function(err, data) {
-        if (data.members.length > 0) {
-            for (var x = 0; x < data.members.length; x++) {
-                var html = $('<div />')
-                    .attr('class', 'users-box')
-                    .append($('<div />').attr('class', 'user-image').attr('data-uid', data.members[x].uid)
-                    .attr('data-username', data.members[x].username).append($('<img />').attr('src', data.members[x].picture).attr('class', 'img-thumbnail user-selectable selection')))
-                    .append($('<a />').attr('href', '/user/'+data.members[x].username).attr( 'target', '_blank').html(data.members[x].username));
-                $('#users-container').append(html);
+    $(window).on('action:ajaxify.end', function(event, data) {
+       var nonApprovedGroupName = $('#nonapprovedUserGroup').val();
+        socket.emit('admin.groups.get', nonApprovedGroupName, function(err, data) {
+            if (data.members.length > 0) {
+                for (var x = 0; x < data.members.length; x++) {
+                    var html = $('<div />')
+                        .attr('class', 'users-box')
+                        .append($('<div />').attr('class', 'user-image').attr('data-uid', data.members[x].uid)
+                        .attr('data-username', data.members[x].username).append($('<img />').attr('src', data.members[x].picture).attr('class', 'img-thumbnail user-selectable selection')))
+                        .append($('<a />').attr('href', '/user/'+data.members[x].username).attr( 'target', '_blank').html(data.members[x].username));
+                    $('#users-container').append(html);
+                }
             }
-        }
+        });
     });
 });
