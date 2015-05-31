@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-newuser-approval",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A plugin for NodeBB to allow admins to approve new users.",
   "main": "library.js",
   "repository": {
@@ -23,6 +23,6 @@
   },
   "homepage": "https://github.com/pichalite/nodebb-plugin-newuser-approval",
   "nbbpm": {
-    "compatibility": "^0.6.0"
+    "compatibility": "^0.7.0"
   }
 }
