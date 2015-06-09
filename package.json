@@ -1,27 +1,27 @@
 {
-  "name": "nodebb-plugin-newuser-approval",
-  "version": "0.0.3",
-  "description": "A plugin for NodeBB to allow admins to approve new users.",
+  "name": "nodebb-plugin-newuser-invitation",
+  "version": "0.0.1",
+  "description": "A plugin for NodeBB to allow admins to invite new users.",
   "main": "library.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pichalite/nodebb-plugin-newuser-approval"
+    "url": "https://github.com/yariplus/nodebb-plugin-newuser-invitation"
   },
   "keywords": [
     "nodebb",
     "plugin",
     "newuser",
-    "approval"
+    "invitation"
   ],
   "author": {
-    "name": "Pichalite",
-    "email": "pichalite.com@gmail.com"
+    "name": "Timothy Fike",
+    "email": "tafike@gmail.com"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/pichalite/nodebb-plugin-newuser-approval/issues"
+    "url": "https://github.com/yariplus/nodebb-plugin-newuser-invitation/issues"
   },
-  "homepage": "https://github.com/pichalite/nodebb-plugin-newuser-approval",
+  "homepage": "https://github.com/yariplus/nodebb-plugin-newuser-invitation",
   "nbbpm": {
     "compatibility": "^0.7.0"
   }

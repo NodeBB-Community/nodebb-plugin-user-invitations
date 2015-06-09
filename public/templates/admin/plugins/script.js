@@ -1,82 +1,125 @@
 "use strict";
 
 var nonApprovedGroupName,
-    approvedGroupName;
+	uninvitedGroup,
+	invitedGroup,
+	invitedUsers,
+	approvedGroupName;
 
-    socket.emit('admin.settings.get', {
-            hash: 'newuser-approval' }, function(err, values) { 
-                if (err) {
-                    console.log('Unable to load settings');
-                    
-                } else {
-                    nonApprovedGroupName = values.nonapprovedUserGroup;
-                    approvedGroupName = values.approvedUserGroup;
-                }
-
-    });
+	socket.emit('admin.settings.get', { hash: 'newuser-invitation' }, function(err, values) {
+		if (err) {
+			console.log('Unable to load settings');
+		} else {
+			invitedUsers = JSON.parse(values.invitedUsers);
+			invitedGroup = values.invitedGroup;
+			uninvitedGroup = values.uninvitedGroup;
+			nonApprovedGroupName = values.nonapprovedUserGroup;
+			approvedGroupName = values.approvedUserGroup;
+		}
+	});
 
 require(['settings'], function(Settings) {
-    Settings.load('newuser-approval', $('.newuser-approval-settings'));
+	Settings.load('newuser-invitation', $('.newuser-invitation-settings'), function(){
+		//console.log(parameters);
+	});
 
-    $('#save').on('click', function() {
-        Settings.save('newuser-approval', $('.newuser-approval-settings'), function() {
-            app.alert({
-                type: 'success',
-                alert_id: 'newuser-approval-saved',
-                title: 'Settings Saved',
-                message: 'Click here to reload NodeBB',
-                timeout: 2500,
-                clickfn: function() {
-                    socket.emit('admin.reload');
-                }
-            });
-        });
-    });
+	$('#save').on('click', function() {
+		var invitedUsers = [ ];
+		$('.user-email').each(function(){
+			invitedUsers.push($(this).html());
+			console.log(invitedUsers);
+		});
+		Settings.save('newuser-invitation', $('.newuser-invitation-settings'), function() {
+			socket.emit('plugins.invitation.setInvitedUsers', {users: invitedUsers}, function () {
+				app.alert({
+					type: 'success',
+					alert_id: 'newuser-invitation-saved',
+					title: 'Settings Saved',
+					message: 'Click here to reload NodeBB',
+					timeout: 2500,
+					clickfn: function() {
+						socket.emit('admin.reload');
+					}
+				});
+			});
+		});
+	});
 });
 
-$('#users-container').on('click', 'div[data-uid]', function() {
-    var uid = $(this).attr('data-uid');
-    socket.emit('admin.groups.join', { 
-                groupName: approvedGroupName,
-                uid: uid
-            }, function(err, data) {
-                if (!err) {
-                    socket.emit('admin.groups.leave', {
-                        groupName: nonApprovedGroupName,
-                        uid: uid
-                    }, function(err, data) {
-                        if (!err) {
-                            $('#users-container').find('div[data-uid="' + uid + '"]').parents('.users-box').remove();
-                        }
-                    });			
-        }
-    });
+$('#new-user-invite-send').on('click', function() {
+	var email = $('#new-user-invite-user').val(), exists;
+
+	$('.user-email').each(function(){
+		if ($(this).html().trim() === email) {
+			app.alert({
+				type: 'danger',
+				alert_id: 'newuser-invitation-failed',
+				title: 'Failed Email',
+				message: 'User already invited.',
+				timeout: 2500
+			});
+			exists = true;
+		}
+	});
+
+	if (exists || email.indexOf('@') < 0 || email.indexOf('.') < 0) {
+		app.alert({
+			type: 'danger',
+			alert_id: 'newuser-invitation-failed',
+			title: 'Failed Invitation',
+			message: "Invalid Email",
+			timeout: 2500
+		});
+		return;
+	}
+
+	socket.emit('plugins.invitation.check', {email:email}, function (err) {
+		console.log('back');
+		if (!err) {
+			var html = $('<div />').attr('class', 'users-invite');
+			html.append($('<span />').attr('class', 'user-email').html(email));
+						html.append($('<button />').attr('class', 'user-uninvite btn btn-sm btn-warning').html("Uninvite"));
+			$('#users-container').append(html);
+			app.alert({
+				type: 'success',
+				alert_id: 'newuser-invitation-success',
+				title: 'Sent Invitation',
+				message: 'Sent email to ' + email,
+				timeout: 2500
+			});
+		}else{
+			app.alert({
+				type: 'danger',
+				alert_id: 'newuser-invitation-failed',
+				title: 'Failed Invitation',
+				message: err.message,
+				timeout: 2500
+			});
+		}
+	});
+});
+
+$('#users-container').on('click', '.user-uninvite', function () {
+	$(this).parent().remove();
 });
 
 $(document).ready(function() {
-    $(window).on('action:ajaxify.end', function(event, data) {
-
-        socket.emit('admin.settings.get', {
-                hash: 'newuser-approval' }, function(err, values) { 
-                    if (err) {
-                        console.log('Unable to load settings');
-                        
-                    } else {
-                        socket.emit('admin.groups.get', values.nonapprovedUserGroup, function(err, data) {
-                            $('#users-container').empty();
-                            if (data.members.length > 0) {
-                                for (var x = 0; x < data.members.length; x++) {
-                                    var html = $('<div />')
-                                        .attr('class', 'users-box')
-                                        .append($('<div />').attr('class', 'user-image').attr('data-uid', data.members[x].uid)
-                                        .attr('data-username', data.members[x].username).append($('<img />').attr('src', data.members[x].picture).attr('class', 'img-thumbnail user-selectable selection')))
-                                        .append($('<a />').attr('href', '/user/'+data.members[x].username).attr( 'target', '_blank').html(data.members[x].username));
-                                    $('#users-container').append(html);
-                                }
-                            }
-                        });
-                    }
-
-        });
-    });
+	$(window).on('action:ajaxify.end', function(event, data) {
+		socket.emit('admin.settings.get', { hash: 'newuser-invitation' }, function(err, values) {
+			if (err) {
+				console.log('Unable to load settings');
+			} else {
+				$('#users-container').empty();
+				if (values.invitedUsers) {
+					values.invitedUsers = JSON.parse(values.invitedUsers);
+					for (var x = 0; x < values.invitedUsers.length; x++) {
+						var html = $('<div />').attr('class', 'users-invite');
+						html.append($('<span />').attr('class', 'user-email').html(values.invitedUsers[x]));
+						html.append($('<button />').attr('class', 'user-uninvite btn btn-sm btn-warning').html("Uninvite"));
+						$('#users-container').append(html);
+					}
+				}
+			}
+		});
+	});
 });

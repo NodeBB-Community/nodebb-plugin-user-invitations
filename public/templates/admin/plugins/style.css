@@ -5,7 +5,7 @@
 
 #users-container {
     border: 1px solid #eee;
-    padding: 0 20px 20px;
+    padding: 20px 20px 0px;
 }
 
 #users-container .users-box {
@@ -19,4 +19,12 @@
     height: auto;
     max-width: 125px;
     min-width: 125px;
+}
+
+.users-invite {
+	margin-bottom: 20px;
+}
+
+.user-uninvite {
+	margin-left: 20px;
 }
