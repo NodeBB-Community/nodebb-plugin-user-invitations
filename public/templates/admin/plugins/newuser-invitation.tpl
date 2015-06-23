@@ -56,7 +56,7 @@
 </div>
 
 <style>
-  @import url("/plugins/nodebb-plugin-newuser-invitation/public/templates/admin/plugins/style.css");
+  @import url("../../plugins/nodebb-plugin-newuser-invitation/public/templates/admin/plugins/style.css");
 </style>
 
-<script src="/plugins/nodebb-plugin-newuser-invitation/public/templates/admin/plugins/script.js"></script>
+<script src="../../plugins/nodebb-plugin-newuser-invitation/public/templates/admin/plugins/script.js"></script>
