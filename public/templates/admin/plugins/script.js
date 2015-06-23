@@ -24,6 +24,12 @@ require(['settings'], function(Settings) {
 	});
 
 	$('#save').on('click', function() {
+		saveInvites();
+	});
+});
+
+function saveInvites() {
+	require(['settings'], function(Settings) {
 		var invitedUsers = [ ];
 		$('.user-email').each(function(){
 			invitedUsers.push($(this).html());
@@ -44,7 +50,7 @@ require(['settings'], function(Settings) {
 			});
 		});
 	});
-});
+}
 
 $('#new-user-invite-send').on('click', function() {
 	var email = $('#new-user-invite-user').val(), exists;
@@ -80,6 +86,7 @@ $('#new-user-invite-send').on('click', function() {
 			html.append($('<span />').attr('class', 'user-email').html(email));
 						html.append($('<button />').attr('class', 'user-uninvite btn btn-sm btn-warning').html("Uninvite"));
 			$('#users-container').append(html);
+			saveInvites();
 			app.alert({
 				type: 'success',
 				alert_id: 'newuser-invitation-success',
