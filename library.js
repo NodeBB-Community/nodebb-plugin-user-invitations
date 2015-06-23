@@ -152,8 +152,9 @@ Invitation.sync = function () {
 Invitation.moveUserToGroup = function(userData) {
 	var invited = invitedUsers ? invitedUsers.indexOf(userData.email) : -1;
 
-    if (uninvitedGroup != null) {
-		if (invitedGroup != null && !!~invited) {
+	// If invited, add to invited group.
+	if (!!~invited) {
+		if (invitedGroup != null) {
 			invitedUsers.splice(invited, 1);
 			Meta.settings.setOne('newuser-invitation', 'invitedUsers', JSON.stringify(invitedUsers));
 			groups.exists(invitedGroup, function (err, exists) {
@@ -163,7 +164,11 @@ Invitation.moveUserToGroup = function(userData) {
 					winston.warn('[plugins/newuser-invitation] Invited Group does not exist!');
 				}
 			});
-		}else{
+		}
+
+	// If not invited, add to uninvited group.
+	}else{
+		if (uninvitedGroup != null) {
 			groups.exists(uninvitedGroup, function (err, exists) {
 				if (!err && exists) {
 					groups.join(uninvitedGroup, userData.uid);
@@ -172,12 +177,13 @@ Invitation.moveUserToGroup = function(userData) {
 				}
 			});
 		}
-    }
+	}
 };
 
 Invitation.checkInvitation = function(data, next) {
 	Invitation.sync();
 
+	// Don't restrict registration if invite groups are set.
 	if (invitedGroup || uninvitedGroup) return next(null, data);
 
 	var invited = invitedUsers ? invitedUsers.indexOf(data.userData.email) : -1;
