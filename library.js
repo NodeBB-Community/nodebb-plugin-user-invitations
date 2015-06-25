@@ -18,15 +18,17 @@ var	fs = require('fs'),
 Invitation.init = function(params, callback) {
 	Sockets.invitation = {
 		check: function (socket, data, callback) {
+			var url = nconf.get('url') + (nconf.get('url').slice(-1) === '/' ? '' : '/');
+
 			User.email.available(data.email, function (err, available) {
 				if (available) {
 					if (Plugins.hasListeners('action:email.send')) {
 						Plugins.fireHook('action:email.send', {
 							to: data.email,
 							from: Meta.config['email:from'] || 'no-reply@localhost.lan',
-							subject: "Invitation to join " + nconf.get('url'),
-							html: 'Join us by visiting <a href="' + nconf.get('url') + 'register">' + nconf.get('url') + 'register</a>',
-							plaintext: 'Join us by visiting ' + nconf.get('url') + 'register'
+							subject: "Invitation to join " + url,
+							html: 'Join us by visiting <a href="' + url + 'register">' + url + 'register</a>',
+							plaintext: 'Join us by visiting ' + url + 'register'
 						});
 					} else {
 						winston.warn('[emailer] No active email plugin found!');
@@ -51,9 +53,9 @@ Invitation.init = function(params, callback) {
 											Plugins.fireHook('action:email.send', {
 												to: data.email,
 												from: Meta.config['email:from'] || 'no-reply@localhost.lan',
-												subject: "Invitation to join the group " + invitedGroup + " at " + nconf.get('url'),
-												html: 'Join the group ' + invitedGroup + ' by visiting <a href="' + nconf.get('url') + 'invitation/' + data.email + '">' + nconf.get('url') + 'invitation/' + data.email + '</a>',
-												plaintext: 'Join the group ' + invitedGroup + ' by visiting ' + nconf.get('url') + 'invitation/' + data.email,
+												subject: "Invitation to join the group " + invitedGroup + " at " + url,
+												html: 'Join the group ' + invitedGroup + ' by visiting <a href="' + url + 'invitation/' + data.email + '">' + url + 'invitation/' + data.email + '</a>',
+												plaintext: 'Join the group ' + invitedGroup + ' by visiting ' + url + 'invitation/' + data.email,
 											});
 											callback();
 										} else {
