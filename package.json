@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-newuser-invitation",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "A plugin for NodeBB to allow admins to invite new users.",
   "main": "library.js",
   "repository": {
