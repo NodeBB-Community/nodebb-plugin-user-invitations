@@ -15,21 +15,35 @@ var	fs = require('fs'),
 	nonapprovedUserGroup = null,
     approvedUserGroup = null;
 
+function sendInvite(email, group) {
+	var url = nconf.get('url') + (nconf.get('url').slice(-1) === '/' ? '' : '/');
+
+	if (!group) {
+		Plugins.fireHook('action:email.send', {
+			to: email,
+			from: Meta.config['email:from'] || 'no-reply@localhost.lan',
+			subject: "Invitation to join " + url,
+			html: 'Join us by visiting <a href="' + url + 'register">' + url + 'register</a>',
+			plaintext: 'Join us by visiting ' + url + 'register'
+		});
+	}else{
+		Plugins.fireHook('action:email.send', {
+			to: email,
+			from: Meta.config['email:from'] || 'no-reply@localhost.lan',
+			subject: "Invitation to join the group " + invitedGroup + " at " + url,
+			html: 'Join the group ' + invitedGroup + ' by visiting <a href="' + url + 'invitation/' + email + '">' + url + 'invitation/' + email + '</a>',
+			plaintext: 'Join the group ' + invitedGroup + ' by visiting ' + url + 'invitation/' + email,
+		});
+	}
+}
+
 Invitation.init = function(params, callback) {
 	Sockets.invitation = {
 		check: function (socket, data, callback) {
-			var url = nconf.get('url') + (nconf.get('url').slice(-1) === '/' ? '' : '/');
-
 			User.email.available(data.email, function (err, available) {
 				if (available) {
 					if (Plugins.hasListeners('action:email.send')) {
-						Plugins.fireHook('action:email.send', {
-							to: data.email,
-							from: Meta.config['email:from'] || 'no-reply@localhost.lan',
-							subject: "Invitation to join " + url,
-							html: 'Join us by visiting <a href="' + url + 'register">' + url + 'register</a>',
-							plaintext: 'Join us by visiting ' + url + 'register'
-						});
+						sendInvite(data.email);
 					} else {
 						winston.warn('[emailer] No active email plugin found!');
 					}
@@ -50,13 +64,7 @@ Invitation.init = function(params, callback) {
 
 									if (!alreadyInvited) {
 										if (Plugins.hasListeners('action:email.send')) {
-											Plugins.fireHook('action:email.send', {
-												to: data.email,
-												from: Meta.config['email:from'] || 'no-reply@localhost.lan',
-												subject: "Invitation to join the group " + invitedGroup + " at " + url,
-												html: 'Join the group ' + invitedGroup + ' by visiting <a href="' + url + 'invitation/' + data.email + '">' + url + 'invitation/' + data.email + '</a>',
-												plaintext: 'Join the group ' + invitedGroup + ' by visiting ' + url + 'invitation/' + data.email,
-											});
+											sendInvite(data.email, true);
 											callback();
 										} else {
 											winston.warn('[emailer] No active email plugin found!');
@@ -84,6 +92,10 @@ Invitation.init = function(params, callback) {
 			Meta.settings.setOne('newuser-invitation', 'invitedUsers', JSON.stringify(data.users), function (err, data) {
 				Invitation.sync();
 			});
+			callback();
+		},
+		send: function (socket, data, callback) {
+			sendInvite(data.email, invitedGroup || uninvitedGroup);
 			callback();
 		}
 	};
@@ -204,7 +216,7 @@ Invitation.admin = {
 		custom_header.plugins.push({
 			"route": '/plugins/newuser-invitation',
 			"icon": 'fa-check',
-			"name": 'New User Invite'
+			"name": 'New User Invitation'
 		});
 
 		callback(null, custom_header);

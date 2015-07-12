@@ -3,22 +3,17 @@
     height: 80px;
 }
 
+#new-user-invite-user {
+	height: 135px;
+}
+
 #users-container {
     border: 1px solid #eee;
     padding: 20px 20px 0px;
 }
 
-#users-container .users-box {
-    display: inline-block;
-    margin-top: 20px;
-    text-align: center;
-    vertical-align: top;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    height: auto;
-    max-width: 125px;
-    min-width: 125px;
+#users-container td{
+    vertical-align: middle;
 }
 
 .users-invite {
@@ -27,4 +22,8 @@
 
 .user-uninvite {
 	margin-left: 20px;
+}
+
+.user-reinvite {
+	margin-left: 4px;
 }
