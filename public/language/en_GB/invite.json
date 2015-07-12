@@ -1,0 +1,19 @@
+{
+	"plugin-title": "New User Invitation",
+	"send-invites": "Send Invites",
+	"email-placeholder": "email@example.com, email2@example.com",
+	"emails": "E-mails",
+	"info-emails": "Enter the emails you want to invite below, separated by commas.",
+	"invited-users-list": "Invited Users List",
+	"info-invited-users-list": "These users have been invited, but have not yet accepted their invitation.",
+	"bulk-actions": "Bulk Actions",
+	"uninvite-all": "Uninvite All",
+	"resend-all": "Resend All",
+	"uninvite": "Uninvite",
+	"resend": "Resend Invite",
+	"invite-groups": "Invite Groups",
+	"info-invite-groups": "If you want to control permissions manually, you can set uninvited and invited groups below. This feature is still experimental and may have bugs.<br><br>Leaving both the groups blank will restrict forum registration to invited users only. (Recommended)",
+	"uninvited-group": "Uninvited Group",
+	"invited-group": "Invited Group",
+	"save-groups": "Save Groups"
+}

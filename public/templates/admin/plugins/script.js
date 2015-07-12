@@ -2,18 +2,28 @@
 
 var uninvitedGroup,
 	invitedGroup,
-	invitedUsers;
+	invitedUsers,
+	Invite = { };
 
-	// Load the invite list.
-	socket.emit('admin.settings.get', { hash: 'newuser-invitation' }, function(err, values) {
-		if (err) {
-			console.log('Unable to load settings');
-		} else {
-			invitedUsers = JSON.parse(values.invitedUsers);
-			invitedGroup = values.invitedGroup;
-			uninvitedGroup = values.uninvitedGroup;
-		}
+require(['translator'], function(translator) {
+	translator.translate("[[invite:uninvite]]", function (translation) {
+		Invite.strUninvite = translation;
 	});
+	translator.translate("[[invite:resend]]", function (translation) {
+		Invite.strResend = translation;
+	});
+});
+
+// Load the invite list.
+socket.emit('admin.settings.get', { hash: 'newuser-invitation' }, function(err, values) {
+	if (err) {
+		console.log('Unable to load settings');
+	} else {
+		invitedUsers = JSON.parse(values.invitedUsers);
+		invitedGroup = values.invitedGroup;
+		uninvitedGroup = values.uninvitedGroup;
+	}
+});
 
 require(['settings'], function(Settings) {
 
@@ -50,8 +60,8 @@ function addInvite(email) {
 
 	html.append($('<td />').append($('<span />').attr('class', 'user-email').html(email)));
 	html.append($('<td />').attr('class','text-right')
-		.append($('<button />').attr('class', 'user-uninvite btn btn-warning').html("Uninvite"))
-		.append($('<button />').attr('class', 'user-reinvite btn btn-success').html("Resend Invite")));
+		.append($('<button />').attr('class', 'user-uninvite btn btn-warning').html(Invite.strUninvite))
+		.append($('<button />').attr('class', 'user-reinvite btn btn-success').html(Invite.strResend)));
 
 	$('#users-container').append(html);
 }

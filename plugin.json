@@ -1,17 +1,18 @@
 {
-	"id": "nodebb-plugin-newuser-invitation"
-   ,"name": "NodeBB New User Invitation Plugin"
-   ,"description": "A plugin for NodeBB to allow admins to invite new users."
-   ,"url": "https://github.com/yariplus/nodebb-plugin-newuser-invitation"
-   ,"library": "./library.js"
-   ,"staticDirs": {
+	"id": "nodebb-plugin-newuser-invitation",
+	"name": "NodeBB New User Invitation Plugin",
+	"description": "A plugin for NodeBB to allow admins to invite new users.",
+	"url": "https://github.com/yariplus/nodebb-plugin-newuser-invitation",
+	"library": "./library.js",
+	"staticDirs": {
 		"public": "public"
-	}
-   ,"templates": "public/templates"
-   ,"hooks": [
+	},
+	"templates": "public/templates",
+	"hooks": [
 		{ "hook": "static:app.load", "method": "init" }, 
 		{ "hook": "filter:admin.header.build", "method": "admin.menu" },
 		{ "hook": "filter:register.check", "method": "checkInvitation" },
 		{ "hook": "action:user.create", "method": "moveUserToGroup" }
-	]
+	],
+	"languages": "public/language"
 }
