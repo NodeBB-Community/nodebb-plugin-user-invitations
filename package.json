@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-newuser-invitation",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A plugin for NodeBB to allow admins to invite new users.",
   "main": "library.js",
   "repository": {
@@ -23,6 +23,6 @@
   },
   "homepage": "https://github.com/yariplus/nodebb-plugin-newuser-invitation",
   "nbbpm": {
-    "compatibility": "^0.7.0 ^0.8.0"
+    "compatibility": ">=0.7.0"
   }
 }
