@@ -7,6 +7,9 @@
 	"staticDirs": {
 		"public": "public"
 	},
+	"scripts": [
+		"public/js/script.js"
+	],
 	"templates": "public/templates",
 	"hooks": [
 		{ "hook": "static:app.load", "method": "init" }, 

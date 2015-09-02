@@ -53,8 +53,8 @@
 						<label for="invitedGroup">[[invite:invited-group]]</label>
 						<input type="text" id="invitedGroup" name="invitedGroup" title="Invited Group" class="form-control" placeholder="members">
 					</div>
-					<button class="btn btn-primary" id="save">[[invite:save-groups]]</button>
                 </form>
+				<button class="btn btn-primary" id="save">[[invite:save-groups]]</button>
             </div>
         </div>
     </div>
@@ -63,5 +63,3 @@
 <style>
   @import url("../../plugins/nodebb-plugin-newuser-invitation/public/templates/admin/plugins/style.css");
 </style>
-
-<script src="../../plugins/nodebb-plugin-newuser-invitation/public/templates/admin/plugins/script.js"></script>
