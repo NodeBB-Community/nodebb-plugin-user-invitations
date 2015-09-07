@@ -164,7 +164,7 @@ Invitation.sync = function () {
 };
 
 Invitation.moveUserToGroup = function(userData) {
-	var invited = invitedUsers ? invitedUsers.indexOf(userData.email) : -1;
+	var invited = invitedUsers ? invitedUsers.indexOf(userData.email.toLowerCase()) : -1;
 
 	// If invited, add to invited group.
 	if (!!~invited) {
@@ -200,14 +200,14 @@ Invitation.checkInvitation = function(data, next) {
 	// Don't restrict registration if invite groups are set.
 	if (invitedGroup || uninvitedGroup) return next(null, data);
 
-	var invited = invitedUsers ? invitedUsers.indexOf(data.userData.email) : -1;
+	var invited = invitedUsers ? invitedUsers.indexOf(data.userData.email.toLowerCase()) : -1;
 
     if (!!~invited) {
 		invitedUsers.splice(invited, 1);
 		Meta.settings.setOne('newuser-invitation', 'invitedUsers', JSON.stringify(invitedUsers));
 		return next(null, data);
     }else{
-		return next(new Error('[[error:not-invited]] ' + data.userData.email));
+		return next(new Error('[[error:not-invited]] ' + data.userData.email.toLowerCase()));
 	}
 };
 
