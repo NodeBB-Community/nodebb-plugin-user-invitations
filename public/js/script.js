@@ -79,12 +79,14 @@ function InviteInit() {
 
 			$.each(matches, function(i, el){
 				el = el.replace(/ /g, '');
+        el = el.toLowerCase();
 				if($.inArray(el, emails) === -1) emails.push(el);
 			});
 
 			emails.forEach(function (email) {
 				$('.user-email').each(function(){
-					if ($(this).html().trim() === email) {
+					if ($(this).html().trim().toLowerCase() === email.toLowerCase()) {
+            console.log('exists');
 						exists = true;
 					}
 				});
