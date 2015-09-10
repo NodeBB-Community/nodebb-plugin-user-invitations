@@ -2,9 +2,7 @@
 
 function InviteInit() {
 	require(['settings', 'translator'], function (settings, translator) {
-		var uninvitedGroup,
-			invitedGroup,
-			invitedUsers,
+		var invitedUsers,
 			Invite = { };
 
 		translator.translate("[[invite:uninvite]]", function (translation) {
@@ -23,19 +21,11 @@ function InviteInit() {
 				invitedUsers.push($(this).html());
 			});
 
-			// Save the invite list and invite groups to the db.
+			// Save the invite list to the db.
 			settings.save('newuser-invitation', $('.newuser-invitation-settings'), function () {
 				socket.emit('plugins.invitation.setInvitedUsers', {users: invitedUsers}, function () { });
 			});
 		}
-
-		// For saving the invite groups.
-		$('#save').on('click', function (e) {
-			e.preventDefault();
-
-			console.log("aaaa");
-			saveInvites();
-		});
 
 		// Load the invite list.
 		socket.emit('admin.settings.get', { hash: 'newuser-invitation' }, function(err, values) {
@@ -49,12 +39,7 @@ function InviteInit() {
 						addInvite(values.invitedUsers[x]);
 					}
 				}
-				//invitedGroup = values.invitedGroup;
-				//uninvitedGroup = values.uninvitedGroup;
 			}
-
-			// Load the invite groups.
-			settings.load('newuser-invitation', $('.newuser-invitation-settings'));
 		});
 
 		// Add the invited user to the invited users table.

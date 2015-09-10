@@ -38,28 +38,6 @@
 	</div>
 </div>
 
-<div class="row">
-    <div class="col-lg-9">
-        <div class="panel panel-default">
-            <div class="panel-heading"><i class="fa fa-check"></i> [[invite:invite-groups]]</div>
-            <div class="panel-body">
-                <p class="jumbotron bg-info">[[invite:info-invite-groups]]</p>
-                <form role="form" class="newuser-invitation-settings">
-                    <div class="form-group col-xs-6">
-						<label for="uninvitedGroup">[[invite:uninvited-group]]</label>
-						<input type="text" id="uninvitedGroup" name="uninvitedGroup" title="Uninvited Group" class="form-control" placeholder="members">
-					</div>
-                    <div class="form-group col-xs-6">
-						<label for="invitedGroup">[[invite:invited-group]]</label>
-						<input type="text" id="invitedGroup" name="invitedGroup" title="Invited Group" class="form-control" placeholder="members">
-					</div>
-                </form>
-				<button class="btn btn-primary" id="save">[[invite:save-groups]]</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
   @import url("../../plugins/nodebb-plugin-newuser-invitation/public/templates/admin/plugins/style.css");
 </style>
