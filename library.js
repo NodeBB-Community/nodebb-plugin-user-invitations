@@ -1,47 +1,42 @@
 "use strict";
-(function(){
+(function(UserInvitations, NodeBB){
 
-	var	fs      = require('fs'),
-		groups  = module.parent.require('./groups'),
-		winston = module.parent.require('winston'),
-		Meta    = module.parent.require('./meta'),
-		Sockets = module.parent.require('./socket.io/plugins'),
-		User    = module.parent.require('./user'),
-		Emailer = module.parent.require('./emailer'),
-		Plugins = module.parent.require('./plugins'),
-		nconf   = module.parent.require('nconf'),
+	var Groups   = NodeBB.require('./groups'),
+		Meta     = NodeBB.require('./meta'),
+		User     = NodeBB.require('./user'),
+		Emailer  = NodeBB.require('./emailer'),
+		Plugins  = NodeBB.require('./plugins'),
+		Database = NodeBB.require('./database'),
 
-		Invitation = {},
-		invitedUsers = [];
+		Settings      = NodeBB.require('./settings'),
+		SocketAdmin   = NodeBB.require('./socket.io/admin'),
+		SocketPlugins = NodeBB.require('./socket.io/plugins'),
+
+		fs      = require('fs'),
+		async   = require('async'),
+		nconf   = require('nconf'),
+		winston = require('winston');
 
 	function sendInvite(email, group) {
 		var url = nconf.get('url') + (nconf.get('url').slice(-1) === '/' ? '' : '/');
 
-		if (!group) {
-			Plugins.fireHook('action:email.send', {
-				to: email,
-				from: Meta.config['email:from'] || 'no-reply@localhost.lan',
-				subject: "Invitation to join " + url,
-				html: 'Join us by visiting <a href="' + url + 'register">' + url + 'register</a>',
-				plaintext: 'Join us by visiting ' + url + 'register'
-			});
-		}else{
-			Plugins.fireHook('action:email.send', {
-				to: email,
-				from: Meta.config['email:from'] || 'no-reply@localhost.lan',
-				subject: "Invitation to join the group " + '' + " at " + url,
-				html: 'Join the group ' + '' + ' by visiting <a href="' + url + 'invitation/' + email + '">' + url + 'invitation/' + email + '</a>',
-				plaintext: 'Join the group ' + '' + ' by visiting ' + url + 'invitation/' + email,
-			});
-		}
+		Plugins.fireHook('action:email.send', {
+			to: email,
+			from: Meta.config['email:from'] || 'no-reply@localhost.lan',
+			subject: "Invitation to join " + url,
+			html: 'Join us by visiting <a href="' + url + 'register">' + url + 'register</a>',
+			plaintext: 'Join us by visiting ' + url + 'register'
+		});
 	}
 
-	Invitation.init = function(data, callback) {
+	UserInvitations.init = function(data, callback) {
+		winston.info('[User-Invitations] Initializing User-Invitations...');
+
 		var app        = data.app,
 			router     = data.router,
 			middleware = data.middleware;
 
-		Sockets.invitation = {
+		SocketPlugins.invitation = {
 			check: function (socket, data, callback) {
 				User.email.available(data.email, function (err, available) {
 					if (available) {
@@ -56,13 +51,6 @@
 					}
 				});
 			},
-			setInvitedUsers: function (socket, data, callback) {
-				winston.info(data);
-				Meta.settings.setOne('newuser-invitation', 'invitedUsers', JSON.stringify(data.users), function (err, data) {
-					Invitation.sync();
-				});
-				callback();
-			},
 			send: function (socket, data, callback) {
 				sendInvite(data.email);
 				callback();
@@ -73,68 +61,104 @@
 			res.render('admin/plugins/newuser-invitation', {});
 		}
 
-		Invitation.sync();
-
 		router.get('/admin/plugins/newuser-invitation', middleware.admin.buildHeader, render);
 		router.get('/api/admin/plugins/newuser-invitation', render);
+
+		var defaultSettings = {
+			restrictRegistration: 1,
+			invitedUsers: []
+		};
+
+		UserInvitations.settings = new Settings('userinvitations', '1.0.0', defaultSettings, function () {
+			winston.info('[User-Invitations] Loaded invite list:', UserInvitations.settings.get('invitedUsers'));
+			warnRestriction();
+			UserInvitations.importOldSettings();
+		});
+
+		SocketAdmin.settings.syncUserInvitations = function () {
+			UserInvitations.settings.sync(function () {
+				winston.info('[User-Invitations] Saved invite list, current settings:', UserInvitations.settings.get());
+				warnRestriction();
+			});
+		};
 
 		callback();
 	};
 
-	Invitation.sync = function () {
+	function warnRestriction() {
+		if (!!UserInvitations.settings.get('restrictRegistration')) winston.warn('[User-Invitations] Restricting new user registration to invited users only!!!');
+	}
+
+	UserInvitations.importOldSettings = function () {
 		Meta.settings.get('newuser-invitation', function(err, settings) {
-			winston.info(settings);
+			if (err || !settings || !settings.invitedUsers) return;
+
+			winston.info('[User-Invitations] Found old invite data, importing...');
 
 			try {
-				invitedUsers = settings.invitedUsers ? JSON.parse(settings.invitedUsers) : [];
+				var invitedUsers = settings.invitedUsers ? JSON.parse(settings.invitedUsers) : [];
+				invitedUsers = UserInvitations.settings.get('invitedUsers').concat(invitedUsers);
+				UserInvitations.settings.set('invitedUsers', invitedUsers);
+				UserInvitations.settings.persist(function () {
+					winston.info('[User-Invitations] Successfully imported old invite data! Logging it on the screen...');
+					winston.info('[User-Invitations]', UserInvitations.settings.get('invitedUsers'));
+					Database.delete('settings:newuser-invitation');
+				});
 			}catch(e){
-				invitedUsers = [];
-				Meta.settings.setOne('newuser-invitation', invitedUsers, '[]');
+				winston.warn('[User-Invitations] Error importing old invite data, puking it onto the screen...');
+				winston.info(settings);
+				winston.warn(e);
 			}
-
-			winston.warn('[plugins/newuser-invitation] Restricting new user registration to invited users only!!!');
 		});
 	};
 
-	Invitation.moveUserToGroup = function(userData) {
-		var invited = !!~(invitedUsers ? invitedUsers.indexOf(userData.email.toLowerCase()) : -1);
-
-		// If invited...
-		if (invited) {
-		// If not invited...
+	UserInvitations.moveUserToGroup = function(userData) {
+		if (isInvited(userData.email)) {
+			// If invited...
 		}else{
+			// If not invited...
 		}
 	};
 
-	Invitation.checkInvitation = function (data, next) {
-		Invitation.sync();
+	function isInvited(email) {
+		var invitedUsers = UserInvitations.settings.get('invitedUsers');
+		return !!~(invitedUsers ? invitedUsers.indexOf(email.toLowerCase()) : -1);
+	}
 
-		// Don't restrict registration if invite groups are set.
-		if (settings) return next(null, data);
-
-		var invited = !!~(invitedUsers ? invitedUsers.indexOf(data.userData.email.toLowerCase()) : -1);
-
-		if (invited) {
-			invitedUsers.splice(invited, 1);
-			Meta.settings.setOne('newuser-invitation', 'invitedUsers', JSON.stringify(invitedUsers));
-			return next(null, data);
-		}else{
-			return next(new Error('[[error:not-invited]] ' + data.userData.email.toLowerCase()));
+	function removeInvite(email) {
+		var invitedUsers = UserInvitations.settings.get('invitedUsers');
+		if (invitedUsers) {
+			console.log("REMOVING INVITE:", email);
+			async.filter(invitedUsers, function (_email, next) {
+				console.log(_email.toLowerCase() !== email.toLowerCase());
+				next(_email.toLowerCase() !== email.toLowerCase());
+			}, function (_invitedUsers) {
+				UserInvitations.settings.set('invitedUsers', _invitedUsers);
+				UserInvitations.settings.persist();
+			});
 		}
+	}
+
+	UserInvitations.checkInvitation = function (data, next) {
+		if (!UserInvitations.settings.get('restrictRegistration') || isInvited(data.userData.email.toLowerCase())) {
+			next(null, data);
+		}else{
+			next(new Error('[[error:not-invited]] ' + data.userData.email.toLowerCase()));
+		}
+
+		removeInvite(data.userData.email);
 	};
 
-	Invitation.admin = {
+	UserInvitations.admin = {
 		menu: function (custom_header, callback) {
 			custom_header.plugins.push({
 				"route": '/plugins/newuser-invitation',
 				"icon": 'fa-check',
-				"name": 'New User Invitation'
+				"name": 'User Invitations'
 			});
 
 			callback(null, custom_header);
 		}
 	};
 
-	module.exports = Invitation;
-
-}(module));
+}(module.exports, module.parent));

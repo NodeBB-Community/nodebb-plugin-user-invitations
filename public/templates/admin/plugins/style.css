@@ -1,23 +1,11 @@
-.new-users img {
-    width: 80px;
-    height: 80px;
-}
-
 #new-user-invite-user {
-	height: 135px;
-}
-
-#users-container {
-    border: 1px solid #eee;
-    padding: 20px 20px 0px;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	height: 150px;
+	padding: 0 6px;
 }
 
 #users-container td{
     vertical-align: middle;
-}
-
-.users-invite {
-	margin-bottom: 20px;
 }
 
 .user-uninvite {
@@ -26,4 +14,8 @@
 
 .user-reinvite {
 	margin-left: 4px;
+}
+
+[data-content="<strong>Settings Saved</strong>Settings have been successfully saved"], #invitedUsers {
+	display: none;
 }

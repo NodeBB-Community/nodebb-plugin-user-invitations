@@ -1,9 +1,23 @@
-<h1><i class="fa fa-check"></i> [[invite:plugin-title]]</h1><br>
-
 <div class="row">
 	<div class="col-lg-9">
 		<div class="panel panel-default">
-			<div class="panel-heading"><i class="fa fa-envelope-o "></i> [[invite:send-invites]]</div>
+			<div class="panel-heading"><i class="fa fa-cog"></i> [[user:settings]]</div>
+			<div class="panel-body">
+				<div class="form-group col-sm-12">
+					<form id="userinvitations">
+						<div id="invitedUsers" data-key="invitedUsers" data-type="inviteArray"></div>
+						<div class="checkbox">
+							<label for="restrictRegistration">
+								<input id="restrictRegistration" data-key="restrictRegistration" name="restrictRegistration" data-type="checkbox" type="checkbox" />
+								<span>Restrict forum registration to invited users only.</span>
+							</label>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading"><i class="fa fa-envelope-o"></i> [[invite:send-invites]]</div>
 			<div class="panel-body">
 				<div class="form-group col-sm-12">
 					<div class="h5">[[invite:info-emails]]</div>
@@ -23,7 +37,12 @@
 			<div class="panel-heading"><i class="fa fa-user"></i> [[invite:invited-users-list]]</div>
 			<div class="panel-body">
 				<div class="h5">[[invite:info-invited-users-list]]</div>
-				<table id="users-container" class="table new-users"></table>
+				<table id="users-container" class="table new-users">
+					<thead>
+						<th>E-mail</th>
+						<th></th>
+					</thead>
+				</table>
 			</div>
 		</div>
 	</div>
@@ -38,6 +57,7 @@
 	</div>
 </div>
 
+
 <style>
-  @import url("../../plugins/nodebb-plugin-newuser-invitation/public/templates/admin/plugins/style.css");
+	@import url("../../plugins/nodebb-plugin-newuser-invitation/public/templates/admin/plugins/style.css");
 </style>
