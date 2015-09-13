@@ -61,8 +61,15 @@
 			res.render('admin/plugins/newuser-invitation', {});
 		}
 
+		function renderUserInvitations(req, res, next) {
+			res.render('account/invitations', {});
+		}
+
 		router.get('/admin/plugins/newuser-invitation', middleware.admin.buildHeader, render);
 		router.get('/api/admin/plugins/newuser-invitation', render);
+
+		router.get('/user/:user/invitations', middleware.buildHeader, renderUserInvitations);
+		router.get('/api/user/:user/invitations', renderUserInvitations);
 
 		var defaultSettings = {
 			restrictRegistration: 1,
@@ -159,6 +166,17 @@
 
 			callback(null, custom_header);
 		}
+	};
+
+	UserInvitations.addProfileLink = function (links, next) {
+		links.push({
+			id: 'userinvitations',
+			public: true,
+			route: 'invitations',
+			icon: 'fa-envelope',
+			name: 'Invitations'
+		});
+		next(null, links);
 	};
 
 }(module.exports, module.parent));

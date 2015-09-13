@@ -15,7 +15,8 @@
 		{ "hook": "static:app.load", "method": "init" }, 
 		{ "hook": "filter:admin.header.build", "method": "admin.menu" },
 		{ "hook": "filter:register.check", "method": "checkInvitation" },
-		{ "hook": "action:user.create", "method": "moveUserToGroup" }
+		{ "hook": "action:user.create", "method": "moveUserToGroup" },
+		{ "hook": "filter:user.profileLinks",  "method": "addProfileLink" }
 	],
 	"languages": "public/language"
 }
