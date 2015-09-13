@@ -61,40 +61,55 @@
 			res.render('admin/plugins/newuser-invitation', {});
 		}
 
-		function renderUserInvitations(req, res, next) {
-			res.render('account/invitations', {});
-		}
-
 		router.get('/admin/plugins/newuser-invitation', middleware.admin.buildHeader, render);
 		router.get('/api/admin/plugins/newuser-invitation', render);
+
+		function renderUserInvitations(req, res, next) {
+			User.getUidByUserslug(req.params.user, function(err, uid) {
+				if (err || !uid || parseInt(uid, 10) !== req.uid) {
+					res.render('account/invitations', {});
+				}else{
+					res.render('account/yourinvitations', {});
+				}
+			});
+		}
 
 		router.get('/user/:user/invitations', middleware.buildHeader, renderUserInvitations);
 		router.get('/api/user/:user/invitations', renderUserInvitations);
 
 		var defaultSettings = {
+			defaultInvitations: 10,
 			restrictRegistration: 1,
 			invitedUsers: []
 		};
 
-		UserInvitations.settings = new Settings('userinvitations', '1.0.0', defaultSettings, function () {
-			winston.info('[User-Invitations] Loaded invite list:', UserInvitations.settings.get('invitedUsers'));
+		function logSettings() {
+			winston.info('[User-Invitations] Synced settings:', UserInvitations.settings.get());
 			warnRestriction();
+		}
+
+		function warnRestriction() {
+			if (!!UserInvitations.settings.get('restrictRegistration')) winston.warn('[User-Invitations] Restricting new user registration to invited users only!!!');
+		}
+
+		UserInvitations.settings = new Settings('userinvitations', '1.0.0', defaultSettings, function () {
+			logSettings();
 			UserInvitations.importOldSettings();
 		});
 
 		SocketAdmin.settings.syncUserInvitations = function () {
+			var diffDefaultInvitations = UserInvitations.settings.get('defaultInvitations');
 			UserInvitations.settings.sync(function () {
-				winston.info('[User-Invitations] Saved invite list, current settings:', UserInvitations.settings.get());
-				warnRestriction();
+				logSettings();
+				diffDefaultInvitations = UserInvitations.settings.get('defaultInvitations') - diffDefaultInvitations;
+				if (diffDefaultInvitations) {
+					// Adjust available invitations for each user by diffDefaultInvitations.
+				}
 			});
 		};
 
 		callback();
 	};
-
-	function warnRestriction() {
-		if (!!UserInvitations.settings.get('restrictRegistration')) winston.warn('[User-Invitations] Restricting new user registration to invited users only!!!');
-	}
 
 	UserInvitations.importOldSettings = function () {
 		Meta.settings.get('newuser-invitation', function(err, settings) {
