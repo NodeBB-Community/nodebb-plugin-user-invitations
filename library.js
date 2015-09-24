@@ -17,43 +17,103 @@
 		nconf   = require('nconf'),
 		winston = require('winston');
 
-	function sendInvite(email, group) {
+	function sendInvite(params, group) {
 		var url = nconf.get('url') + (nconf.get('url').slice(-1) === '/' ? '' : '/');
 
 		Plugins.fireHook('action:email.send', {
-			to: email,
+			to: params.email,
 			from: Meta.config['email:from'] || 'no-reply@localhost.lan',
+			from_name: Meta.config['email:from_name'] || 'NodeBB',
 			subject: "Invitation to join " + url,
 			html: 'Join us by visiting <a href="' + url + 'register">' + url + 'register</a>',
-			plaintext: 'Join us by visiting ' + url + 'register'
+			plaintext: 'Join us by visiting ' + url + 'register',
+			uid: 'none, email: ' + params.email,
+			template: "New User Invitation"
+		});
+	}
+
+	function hasEmailer() {
+		if (Plugins.hasListeners('action:email.send')) {
+			return true;
+		} else {
+			winston.warn('[UserInvitations] No active email plugin found!');
+			return false;
+		}
+	}
+
+	function filterEmails(emails, next) {
+		var payload = {sent:[],unavailable:[],error:[]};
+
+		// Remove duplicates.
+		emails = emails.sort().filter(function(item, pos, ary) {
+			return !pos || item != ary[pos - 1];
+		});
+
+		// Check availability and if they were already invited.
+		async.each(emails, function (email, next) {
+			email = email.toLowerCase();
+
+			async.parallel({
+				invitedBy: async.apply(Database.sortedSetScore, 'invitation:uid', email),
+				available: async.apply(User.email.available, email)
+			}, function (err, results) {
+				if (err) {
+					payload.error.push(email);
+					return next();
+				}
+
+				if (!results.available || results.invitedBy) {
+					payload.unavailable.push(email);
+					return next();
+				}
+
+				payload.sent.push(email);
+				return next();
+			});
+		}, function(){
+			next(null, payload);
 		});
 	}
 
 	UserInvitations.init = function(data, callback) {
 		winston.info('[User-Invitations] Initializing User-Invitations...');
+		hasEmailer();
 
 		var app        = data.app,
 			router     = data.router,
 			middleware = data.middleware;
 
 		SocketPlugins.invitation = {
-			check: function (socket, data, callback) {
-				User.email.available(data.email, function (err, available) {
-					if (available) {
-						if (Plugins.hasListeners('action:email.send')) {
-							sendInvite(data.email);
-						} else {
-							winston.warn('[emailer] No active email plugin found!');
-						}
-						callback();
-					}else{
-						callback(new Error('[[fail_email_taken]]'));
-					}
+
+			// Check availability of emails and send them.
+			send: function (socket, data, next) {
+				if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
+				if (!data || !data.emails || !Array.isArray(data.emails) || !data.emails.length) return next(new Error('[[fail_bad_data]]'));
+
+				filterEmails(data.emails, function (err, payload) {
+					Database.sortedSetCount('invitation:uid', socket.uid, socket.uid, function (err, invites) {
+						if (UserInvitations.settings.get('defaultUserInvites') - invites < payload.sent.length) return next(new Error('[[not_enough_invites]]'));
+
+						payload.sent.forEach(function(email){
+							sendInvite({email: email, from: socket.uid});
+						});
+					});
 				});
-			},
-			send: function (socket, data, callback) {
-				sendInvite(data.email);
-				callback();
+			}
+		};
+
+		SocketAdmin.invitation = {
+
+			// Check availability of an array of emails and send them.
+			send: function (socket, data, next) {
+				if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
+				if (!data || !data.emails || !Array.isArray(data.emails)) return next(new Error('[[fail_bad_data]]'));
+
+				filterEmails(data.emails, function (err, payload) {
+					payload.sent.forEach(function(email){
+						sendInvite({email: email, from: socket.uid});
+					});
+				});
 			}
 		};
 
@@ -66,11 +126,28 @@
 
 		function renderUserInvitations(req, res, next) {
 			User.getUidByUserslug(req.params.user, function(err, uid) {
-				if (err || !uid || parseInt(uid, 10) !== req.uid) {
-					res.render('account/invitations', {});
-				}else{
-					res.render('account/yourinvitations', {});
-				}
+				if (err || !uid) return res.redirect('/');
+
+				async.parallel({
+					invitesPending  : async.apply(Database.getSortedSetRangeByScore, 'invitation:uid', 0, 1, uid, uid),
+					invitesAccepted : function (next) {
+						Database.getSortedSetRangeByScore('user:invitedby', 0, 1, uid, uid, function (err, uids) {
+							User.getUsersData(uids, next);
+						});
+					}
+				}, function (err, renderData) {
+					if (err) return res.redirect('/');
+
+					renderData.maxInvites         = UserInvitations.settings.get('defaultInvitations');
+					renderData.numInvitesPending  = renderData.invitesPending.length;
+					renderData.numInvitesAccepted = renderData.invitesAccepted.length;
+					renderData.invitesAvailable   = UserInvitations.settings.get('defaultInvitations') - renderData.invitesPending - renderData.invitesAccepted;
+					renderData.invitesAvailable   = renderData.invitesAvailable < 0 ? 0 : renderData.invitesAvailable;
+
+					renderData.yourprofile = parseInt(uid, 10) === req.uid;
+
+					res.render('account/invitations', renderData);
+				});
 			});
 		}
 

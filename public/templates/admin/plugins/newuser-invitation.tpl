@@ -37,7 +37,7 @@
 			<div class="panel-heading"><i class="fa fa-user"></i> [[invite:invited-users-list]]</div>
 			<div class="panel-body">
 				<div class="h5">[[invite:info-invited-users-list]]</div>
-				<table id="users-container" class="table new-users">
+				<table id="pending-invites" class="table new-users">
 					<thead>
 						<th>E-mail</th>
 						<th></th>

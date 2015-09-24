@@ -1,163 +1,176 @@
-define('admin/plugins/newuser-invitation', function () {
-
+var UserInvitations = function () {
 	console.log("Loading User Invitations...");
 
-	var UserInvitations = { };
-
-	UserInvitations.init = function () {
-		require(['settings', 'translator'], function (settings, translator) {
-
-			translator.translate("[[invite:uninvite]]", function (translation) { UserInvitations.strUninvite = translation; });
-			translator.translate("[[invite:resend]]",   function (translation) { UserInvitations.strReinvite = translation; });
-
-			UserInvitations.inviteTemplate = ''
-			+ '<tr class="invite">'
-			+ '<td><span class="email">{{email}}</span></td>'
-			+ '<td class="text-right">'
-			+ '<button class="user-uninvite btn btn-warning">' + UserInvitations.strUninvite + '</button>'
-			+ '<button class="user-reinvite btn btn-success">' + UserInvitations.strReinvite + '</button>'
-			+ '</td></tr>';
-
-			function saveInvites() {
-				settings.persist('userinvitations', $('#userinvitations'), function () {
-					socket.emit('admin.settings.syncUserInvitations');
-				});
-			}
-
-			// Add the invited user to the invited users table.
-			function addInvite(email) {
-				$('table').append(UserInvitations.inviteTemplate.replace('{{email}}', email));
-			}
-
-			$('#new-user-invite-send').on('click', function (e) {
-				e.preventDefault();
-
-				var email = $('#new-user-invite-user').val().toLowerCase().replace(/ /g, ''),
-					emails = [],
-					matches,
-					exists;
-
-				matches = email.match(/[^,"\n\r]*@[^,"\n\r]+\.[^,"\n\r]+/g);
-
-				// Eliminate duplicates.
-				$.each(matches, function (i, el) {
-					if ($.inArray(el, emails) === -1) emails.push(el);
-				});
-
-				emails.forEach(function (email) {
-					$('.email').each(function(){
-						if ($(this).text().trim() === email) {
-							exists = true;
-						}
+	function getInviteTemplate(next) {
+		if (UserInvitations.inviteTemplate) {
+			next(UserInvitations.inviteTemplate);
+		}else{
+			require(['translator'], function (translator) {
+				translator.translate("[[invite:uninvite]]", function (strUninvite) {
+					translator.translate("[[invite:resend]]", function (strReinvite) {
+						next(''
+						+ '<tr class="invite">'
+						+ '<td><span class="email">{{email}}</span></td>'
+						+ '<td class="text-right">'
+						+ '<button class="user-uninvite btn btn-warning">' + strUninvite + '</button>'
+						+ '<button class="user-reinvite btn btn-success">' + strReinvite + '</button>'
+						+ '</td></tr>');
 					});
-
-					if (exists) {
-						app.alert({
-							type: 'warning',
-							alert_id: 'newuser-invitation-failed-' + email.replace(/[@\.]/g, '_'),
-							title: "User " + email + ' was already invited.',
-							timeout: 5000
-						});
-					}else{
-						socket.emit('plugins.invitation.check', {email:email}, function (err) {
-							if (!err) {
-								addInvite(email);
-								saveInvites();
-
-								app.alert({
-									type: 'success',
-									alert_id: 'newuser-invitation-success-' + email.replace(/[@\.]/g, '_'),
-									title: 'Sent invitation to ' + email,
-									timeout: 5000
-								});
-							}else{
-								app.alert({
-									type: 'danger',
-									alert_id: 'newuser-invitation-failed-' + email.replace(/[@\.]/g, '_'),
-									title: "Invitation to " + email + " failed.",
-									message: err.message,
-									timeout: 8000
-								});
-							}
-						});
-					}
 				});
 			});
-
-			function reinvite(email) {
-				socket.emit('plugins.invitation.send', {email:email}, function (err) {
-					if (!err) {
-						app.alert({
-							type: 'success',
-							alert_id: 'newuser-invitation-success-' + email.replace(/[@\.]/g, '_'),
-							title: 'Re-sent invitation to ' + email,
-							timeout: 5000
-						});
-					}else{
-						app.alert({
-							type: 'danger',
-							alert_id: 'newuser-invitation-failed-' + email.replace(/[@\.]/g, '_'),
-							title: "Re-invite to " + email + " failed.",
-							message: err.message,
-							timeout: 8000
-						});
-					}
-				});
-			}
-
-			$('#users-container').on('click', '.user-uninvite', function () {
-				$(this).closest('tr').remove();
-				saveInvites();
-			});
-
-			$('#users-container').on('click', '.user-reinvite', function () {
-				reinvite($(this).closest('tr').find('.email').text().trim());
-			});
-
-			$('#bulk-uninvite').on('click', function() {
-				bootbox.confirm("Are you sure? This will uninvite all invited users that have not yet accepted their invitation. This action is not reversible.", function (result) {
-					if (result) {
-						$('.email').each(function(){
-							$(this).closest('tr').remove();
-						});
-						saveInvites();
-					}
-				});
-			});
-
-			$('#bulk-reinvite').on('click', function() {
-				bootbox.confirm("Are you sure? This will reinvite all invited users that have not yet accepted their invitation.", function (result) {
-					if (result) {
-						$('.email').each(function(){
-							reinvite($(this).text().trim());
-						});
-					}
-				});
-			});
-
-			settings.registerPlugin({
-				types: ['inviteArray'],
-				set: function (element, value, trim) {
-					value.forEach(addInvite);
-				},
-				get: function (element, trim, empty) {
-					var key = element.data('key'),
-						values = [];
-
-					$('.invite').each(function () {
-						values.push($(this).find('.email').text());
-					});
-
-					return values;
-				}
-			});
-
-			settings.sync('userinvitations', $('#userinvitations'));
-
-			$('#restrictRegistration').change(saveInvites);
-			$('#save').click(saveInvites);
-		});
+		}
 	}
 
+	// Add the invited user to the invited users table.
+	UserInvitations.addInvite = function (email) {
+		getInviteTemplate(function(inviteTemplate){
+			$('#pending-invites').append(inviteTemplate.replace('{{email}}', email));
+		});
+	};
+
+	UserInvitations.init = function () {
+
+		var unavailable = [];
+
+		function sendInvites(e) {
+			e.preventDefault();
+
+			var emails = $('#new-user-invite-user').val().toLowerCase().replace(/[ \t]/g, "").match(/[^,"\n\r]*@[^,"\n\r]+\.[^,"\n\r]+/g),
+				invited = getInvited();
+
+			emails = emails.sort().filter(function(email, i, ary) {
+				if (invited.indexOf(email) !== -1) {
+					if (unavailable.indexOf(email) === -1) unavailable.push(email);
+					return false;
+				}
+				return !i || email !== ary[i - 1];
+			});
+
+			socket.emit(UserInvitations.socketSend, {emails:emails}, callbackInvites);
+		}
+
+		function addInvites(emails) {
+			emails.forEach(function(email){
+				UserInvitations.addInvite(email);
+			});
+		}
+
+		function alertInvites(payload) {
+			if (payload.sent.length) {
+				app.alert({
+					type: 'success',
+					alert_id: 'newuser-invitation-success',
+					title: "Sent Invitation(s)",
+					message: payload.sent.join(', '),
+					timeout: 15000
+				});
+			}
+
+			if (payload.unavailable.length || unavailable.length) {
+				app.alert({
+					type: 'danger',
+					alert_id: 'newuser-invitation-failed',
+					title: "Already Invited",
+					message: payload.unavailable.concat(unavailable).join(', '),
+					timeout: 15000
+				});
+			}
+		}
+
+		function callbackReinvites(err, payload) {
+			alertInvites(payload);
+			UserInvitations.saveInvites();
+		}
+
+		function callbackInvites(err, payload) {
+			alertInvites(payload);
+			UserInvitations.saveInvites();
+
+			// Add invites to table.
+			addInvites(payload.sent);
+
+			// Clear unavailable list.
+			unavailable = [];
+		}
+
+		function getInvited() { return $('#pending-invites .email').map(function(){ return $(this).text().replace(/[ \t]/g, ""); }).get(); }
+
+		$('#new-user-invite-send').on('click', sendInvites);
+
+		$('#users-container').on('click', '.user-uninvite', function () {
+			$(this).closest('tr').remove();
+			UserInvitations.saveInvites();
+		});
+
+		$('#users-container').on('click', '.user-reinvite', function () {
+			socket.emit(UserInvitations.socketSend, {emails:[$(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")]}, callbackReinvites);
+		});
+
+		$('#bulk-uninvite').on('click', function() {
+			bootbox.confirm("Are you sure? This will uninvite all invited users that have not yet accepted their invitation. This action is not reversible.", function (result) {
+				if (result) {
+					$('.email').each(function(){
+						$(this).closest('tr').remove();
+					});
+					UserInvitations.saveInvites();
+				}
+			});
+		});
+
+		$('#bulk-reinvite').on('click', function() {
+			bootbox.confirm("Are you sure? This will reinvite all invited users that have not yet accepted their invitation.", function (result) {
+				if (result) {
+					socket.emit(UserInvitations.socketSend, {emails:getInvited()}, callbackReinvites);
+				}
+			});
+		});
+	};
+
 	return UserInvitations;
+};
+
+define('admin/plugins/newuser-invitation', function () {
+	require(['settings'], function (settings) {
+		UserInvitations.saveInvites = function () {
+			settings.persist('userinvitations', $('#userinvitations'), function () {
+				socket.emit('admin.settings.syncUserInvitations');
+			});
+		};
+
+		settings.registerPlugin({
+			types: ['inviteArray'],
+			set: function (element, value, trim) {
+				value.forEach(UserInvitations.addInvite);
+			},
+			get: function (element, trim, empty) {
+				var key = element.data('key'),
+					values = [];
+
+				$('.invite').each(function () {
+					values.push($(this).find('.email').text());
+				});
+
+				return values;
+			}
+		});
+
+		settings.sync('userinvitations', $('#userinvitations'));
+
+		$('#restrictRegistration').change(UserInvitations.saveInvites);
+	});
+
+	UserInvitations.socketSend = 'admin.invitation.send';
+
+	return UserInvitations();
+});
+
+define('profile/invitations', function () {
+	console.log("here");
+	UserInvitations.saveInvites = function () {
+		socket.emit('plugins.invitation.syncUserInvitations', {});
+	};
+
+	UserInvitations.socketSend = 'plugins.invitation.send';
+
+	UserInvitations().init();
 });

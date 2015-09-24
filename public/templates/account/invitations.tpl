@@ -3,15 +3,34 @@
 	<div class="panel-body">
 		<div class="form-group col-sm-12">
 			<form id="userinvitations">
-				<strong>[[invite:user-available-invites, {user.name}]]:</strong> {invites.available}
+				<strong>[[invite:user-available-invites, {user.name}]]:</strong> {invitesAvailable}/{maxInvites}
 				<br>
-				<strong>[[invite:user-pending-invites, {user.name}]]:</strong> {invites.pending}
+				<strong>[[invite:user-pending-invites, {user.name}]]:</strong> {numInvitesPending}
 				<br>
-				<strong>[[invite:user-accepted-invites, {user.name}]]:</strong> {invites.accepted}
+				<strong>[[invite:user-accepted-invites, {user.name}]]:</strong> {numInvitesAccepted}
 			</form>
 		</div>
 	</div>
 </div>
+
+<!-- IF yourprofile -->
+<div class="panel panel-default">
+	<div class="panel-heading"><i class="fa fa-envelope-o"></i> [[invite:send-invites]]</div>
+	<div class="panel-body">
+		<div class="form-group col-sm-12">
+			<div class="h5">[[invite:emails-info]]</div>
+			<label for="new-user-invite-user">[[invite:emails]]</label>
+			<textarea id="new-user-invite-user" class="form-control" placeholder="[[invite:email-placeholder]]"/></textarea>
+			<br>
+			<button class="btn btn-primary" id="new-user-invite-send">[[invite:send-invites]]</button>
+		</div>
+	</div>
+</div>
+
+<script>
+	require(['profile/invitations']);
+</script>
+<!-- ENDIF yourprofile -->
 
 <div class="panel panel-default">
 	<div class="panel-heading"><i class="fa fa-user"></i> [[invite:user-pending-invites-list, {user.name}]]</div>
