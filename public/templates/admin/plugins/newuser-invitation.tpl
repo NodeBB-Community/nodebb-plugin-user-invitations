@@ -1,18 +1,18 @@
+<form id="userinvitations">
+
 <div class="row">
 	<div class="col-lg-9">
 		<div class="panel panel-default">
 			<div class="panel-heading"><i class="fa fa-cog"></i> [[user:settings]]</div>
 			<div class="panel-body">
 				<div class="form-group col-sm-12">
-					<form id="userinvitations">
-						<div id="invitedUsers" data-key="invitedUsers" data-type="inviteArray"></div>
-						<div class="checkbox">
-							<label for="restrictRegistration">
-								<input id="restrictRegistration" data-key="restrictRegistration" name="restrictRegistration" data-type="checkbox" type="checkbox" />
-								<span>Restrict forum registration to invited users only.</span>
-							</label>
-						</div>
-					</form>
+					<div id="invitedUsers" data-key="invitedUsers" data-type="inviteArray"></div>
+					<div class="checkbox">
+						<label for="restrictRegistration">
+							<input id="restrictRegistration" data-key="restrictRegistration" name="restrictRegistration" data-type="checkbox" type="checkbox" />
+							<span>Restrict forum registration to invited users only.</span>
+						</label>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -57,6 +57,25 @@
 	</div>
 </div>
 
+<div class="row">
+	<div class="col-lg-12">
+		<div class="panel panel-default">
+			<div class="panel-heading"><i class="fa fa-cog"></i> [[invite:invite-group]]</div>
+			<div class="panel-body">
+				<div class="form-group col-sm-12">
+					<label for="inviteGroup">[[invite:invite-group]]</label>
+					<select id="inviteGroup" data-key="inviteGroup" name="inviteGroup">
+						<!-- BEGIN groups -->
+						<option value="{groups.name}">{groups.name}</option>
+						<!-- END groups -->
+					</select>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+</form>
 
 <style>
 	@import url("../../plugins/nodebb-plugin-newuser-invitation/public/templates/admin/plugins/style.css");

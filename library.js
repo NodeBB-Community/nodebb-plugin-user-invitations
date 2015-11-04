@@ -1,7 +1,8 @@
 "use strict";
+
 (function(UserInvitations, NodeBB){
 
-	var Groups   = NodeBB.require('./groups'),
+	var	Groups   = NodeBB.require('./groups'),
 		Meta     = NodeBB.require('./meta'),
 		User     = NodeBB.require('./user'),
 		Emailer  = NodeBB.require('./emailer'),
@@ -18,7 +19,7 @@
 		winston = require('winston');
 
 	function sendInvite(params, group) {
-		var url = nconf.get('url') + (nconf.get('url').slice(-1) === '/' ? '' : '/');
+		var	url = nconf.get('url') + (nconf.get('url').slice(-1) === '/' ? '' : '/');
 
 		Plugins.fireHook('action:email.send', {
 			to: params.email,
@@ -31,7 +32,6 @@
 			template: "New User Invitation"
 		});
 
-		console.dir(params);
 		if (params.from) addUserInvite(params);
 	}
 
@@ -117,6 +117,7 @@
 
 						payload.sent.forEach(function(email){
 							sendInvite({email: email, from: socket.uid});
+							settings
 						});
 
 						next(null, payload);
@@ -140,10 +141,19 @@
 					next(null, payload);
 				});
 			}
+
 		};
 
 		function render(req, res, next) {
-			res.render('admin/plugins/newuser-invitation', {});
+			Groups.getGroupsFromSet('groups:createtime', 0, 0, -1, function(err, groups) {
+				if (err) return groups = [];
+				groups = groups.filter(function (element, index, array) {
+					if (element.name.match('privileges')) return false;
+					return true;
+				});
+				console.log(groups);
+				res.render('admin/plugins/newuser-invitation', {groups: groups});
+			});
 		}
 
 		router.get('/admin/plugins/newuser-invitation', middleware.admin.buildHeader, render);
@@ -235,10 +245,19 @@
 	};
 
 	UserInvitations.moveUserToGroup = function(userData) {
+
+		// If invited...
 		if (isInvited(userData.email)) {
-			// If invited...
+
+			var	inviteGroups = UserInvitations.settings.get('invitedUsers');
+
+			if (!inviteGroup) return;
+
+			Groups.join(inviteGroup, userData.uid);
+
+		// If not invited...
 		}else{
-			// If not invited...
+
 		}
 	};
 
