@@ -23,6 +23,6 @@
   },
   "homepage": "https://github.com/yariplus/nodebb-plugin-newuser-invitation",
   "nbbpm": {
-    "compatibility": ">=0.7.0"
+    "compatibility": "^0.7.0 || ^0.8.0 || ^0.9.0"
   }
 }
