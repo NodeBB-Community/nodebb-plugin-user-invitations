@@ -36,11 +36,20 @@
 	<div class="panel-heading"><i class="fa fa-user"></i> [[invite:user-pending-invites-list, {user.name}]]</div>
 	<div class="panel-body">
 		<div class="h5">[[invite:user-pending-invites-info, {user.name}]]</div>
-		<table id="users-container" class="table new-users">
+		<table id="pending-invites" class="table new-users">
 			<thead>
 				<th>E-mail</th>
 				<th></th>
 			</thead>
+			<!-- BEGIN invitesPending -->
+			<tr class="invite">
+				<td><span class="email">{invitesPending.email}</span></td>
+				<td class="text-right">
+					<button class="user-uninvite btn btn-warning">[[invite:uninvite]]</button>
+					<button class="user-reinvite btn btn-success">[[invite:resend]]</button>
+				</td>
+			</tr>
+			<!-- END invitesPending -->
 		</table>
 	</div>
 </div>

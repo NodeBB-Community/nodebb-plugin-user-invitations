@@ -30,6 +30,9 @@
 			uid: 'none, email: ' + params.email,
 			template: "New User Invitation"
 		});
+
+		console.dir(params);
+		if (params.from) addUserInvite(params);
 	}
 
 	function hasEmailer() {
@@ -75,6 +78,21 @@
 		});
 	}
 
+	function getUserInvites(uid, next) {
+		async.parallel({
+			invitesPending  : async.apply(Database.getSortedSetRangeByScore, 'invitation:uid', 0, 10000, uid, uid),
+			invitesAccepted : function (next) {
+				Database.getSortedSetRangeByScore('user:invitedby', 0, 10000, uid, uid, function (err, uids) {
+					User.getUsersData(uids, next);
+				});
+			}
+		}, next);
+	}
+
+	function addUserInvite(data, next) {
+		Database.sortedSetAdd('invitation:uid', data.email, data.from, next);
+	}
+
 	UserInvitations.init = function(data, callback) {
 		winston.info('[User-Invitations] Initializing User-Invitations...');
 		hasEmailer();
@@ -89,14 +107,19 @@
 			send: function (socket, data, next) {
 				if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
 				if (!data || !data.emails || !Array.isArray(data.emails) || !data.emails.length) return next(new Error('[[fail_bad_data]]'));
+				if (!socket.uid) return;
 
 				filterEmails(data.emails, function (err, payload) {
-					Database.sortedSetCount('invitation:uid', socket.uid, socket.uid, function (err, invites) {
-						if (UserInvitations.settings.get('defaultUserInvites') - invites < payload.sent.length) return next(new Error('[[not_enough_invites]]'));
+					getUserInvites(socket.uid, function (err, invites) {
+						if (err) return next(new Error('[[fail_db]]'));
+
+						if (UserInvitations.settings.get('defaultUserInvites') - invites.invitesPending - invites.invitesAccepted < payload.sent.length) return next(new Error('[[not_enough_invites]]'));
 
 						payload.sent.forEach(function(email){
 							sendInvite({email: email, from: socket.uid});
 						});
+
+						next(null, payload);
 					});
 				});
 			}
@@ -111,8 +134,10 @@
 
 				filterEmails(data.emails, function (err, payload) {
 					payload.sent.forEach(function(email){
-						sendInvite({email: email, from: socket.uid});
+						sendInvite({email: email});
 					});
+
+					next(null, payload);
 				});
 			}
 		};
@@ -128,24 +153,20 @@
 			User.getUidByUserslug(req.params.user, function(err, uid) {
 				if (err || !uid) return res.redirect('/');
 
-				async.parallel({
-					invitesPending  : async.apply(Database.getSortedSetRangeByScore, 'invitation:uid', 0, 1, uid, uid),
-					invitesAccepted : function (next) {
-						Database.getSortedSetRangeByScore('user:invitedby', 0, 1, uid, uid, function (err, uids) {
-							User.getUsersData(uids, next);
-						});
-					}
-				}, function (err, renderData) {
+				getUserInvites(uid, function (err, renderData) {
 					if (err) return res.redirect('/');
 
 					renderData.maxInvites         = UserInvitations.settings.get('defaultInvitations');
 					renderData.numInvitesPending  = renderData.invitesPending.length;
 					renderData.numInvitesAccepted = renderData.invitesAccepted.length;
-					renderData.invitesAvailable   = UserInvitations.settings.get('defaultInvitations') - renderData.invitesPending - renderData.invitesAccepted;
+					renderData.invitesAvailable   = UserInvitations.settings.get('defaultInvitations') - renderData.numInvitesPending - renderData.numInvitesAccepted;
 					renderData.invitesAvailable   = renderData.invitesAvailable < 0 ? 0 : renderData.invitesAvailable;
 
 					renderData.yourprofile = parseInt(uid, 10) === req.uid;
 
+					renderData.invitesPending = renderData.invitesPending.map(function (email) { return {email:email}; });
+
+					console.dir(renderData.invitesPending);
 					res.render('account/invitations', renderData);
 				});
 			});
@@ -174,7 +195,7 @@
 			UserInvitations.importOldSettings();
 		});
 
-		SocketAdmin.settings.syncUserInvitations = function () {
+		SocketAdmin.settings.syncUserInvitations = function (socket, data, next) {
 			var diffDefaultInvitations = UserInvitations.settings.get('defaultInvitations');
 			UserInvitations.settings.sync(function () {
 				logSettings();
@@ -182,6 +203,8 @@
 				if (diffDefaultInvitations) {
 					// Adjust available invitations for each user by diffDefaultInvitations.
 				}
+
+				next();
 			});
 		};
 
