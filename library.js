@@ -90,14 +90,14 @@
 	}
 
 	function addUserInvite(data, next) {
-		Database.sortedSetAdd('invitation:uid', data.email, data.from, next);
+		Database.sortedSetAdd('invitation:uid', data.from, data.email.toLowerCase(), next);
 	}
 
 	UserInvitations.init = function(data, callback) {
 		winston.info('[User-Invitations] Initializing User-Invitations...');
 		hasEmailer();
 
-		var app        = data.app,
+		var	app        = data.app,
 			router     = data.router,
 			middleware = data.middleware;
 
@@ -116,12 +116,42 @@
 						if (UserInvitations.settings.get('defaultUserInvites') - invites.invitesPending - invites.invitesAccepted < payload.sent.length) return next(new Error('[[not_enough_invites]]'));
 
 						payload.sent.forEach(function(email){
-							sendInvite({email: email, from: socket.uid});
-							settings
+							sendInvite({email: email.toLowerCase(), from: socket.uid});
 						});
 
 						next(null, payload);
 					});
+				});
+			},
+
+			// User uninvite.
+			uninvite: function (socket, data, next) {
+
+				if (!(data && data.email)) return next(new Error("No email to reinvite."));
+
+				var email = data.email.toLowerCase();
+
+				Database.sortedSetScore('invitation:uid', email, function (err, uid) {
+					if (err || !uid) return next(err || new Error("Database error uninviting " + email));
+					if (parseInt(uid, 10) !== socket.uid) return next(new Error("User not invited by you."));
+
+					Database.sortedSetRemove('invitation:uid', email, next);
+				});
+			},
+
+			// User reinvite.
+			reinvite: function (socket, data, next) {
+
+				if (!(data && data.email)) return next(new Error("No email to reinvite."));
+
+				var email = data.email.toLowerCase();
+
+				Database.sortedSetScore('invitation:uid', email, function (err, uid) {
+					if (err || !uid) return next(err || new Error("Database error uninviting " + email));
+					if (parseInt(uid, 10) !== socket.uid) return next(new Error("User not invited by you."));
+
+					sendInvite({email: email, from: socket.uid});
+					next();
 				});
 			}
 		};
@@ -151,7 +181,7 @@
 					if (element.name.match('privileges')) return false;
 					return true;
 				});
-				console.log(groups);
+
 				res.render('admin/plugins/newuser-invitation', {groups: groups});
 			});
 		}
@@ -244,50 +274,66 @@
 		});
 	};
 
-	UserInvitations.moveUserToGroup = function(userData) {
+	// New user hook.
+	UserInvitations.moveUserToGroup = function (userData) {
 
-		// If invited...
-		if (isInvited(userData.email)) {
+		var	inviteGroup = UserInvitations.settings.get('inviteGroup');
+		if (!inviteGroup) return;
 
-			var	inviteGroups = UserInvitations.settings.get('invitedUsers');
+		isInvited(userData.email.toLowerCase(), function (err, invited) {
+			if (err) return;
+			if (invited) Groups.join(inviteGroup, userData.uid);
+			acceptInvite(userData);
+		});
 
-			if (!inviteGroup) return;
-
-			Groups.join(inviteGroup, userData.uid);
-
-		// If not invited...
-		}else{
-
-		}
 	};
 
-	function isInvited(email) {
+	function isInvited(email, next) {
+
 		var invitedUsers = UserInvitations.settings.get('invitedUsers');
-		return !!~(invitedUsers ? invitedUsers.indexOf(email.toLowerCase()) : -1);
+
+		if (!!~(invitedUsers ? invitedUsers.indexOf(email.toLowerCase()) : -1)) return next(null, true);
+
+		Database.isSortedSetMember('invitation:uid', email.toLowerCase(), next);
 	}
 
-	function removeInvite(email) {
+	function acceptInvite(userData) {
+
 		var invitedUsers = UserInvitations.settings.get('invitedUsers');
+
 		if (invitedUsers) {
-			console.log("REMOVING INVITE:", email);
 			async.filter(invitedUsers, function (_email, next) {
-				console.log(_email.toLowerCase() !== email.toLowerCase());
-				next(_email.toLowerCase() !== email.toLowerCase());
+				next(_email.toLowerCase() !== userData.email.toLowerCase());
 			}, function (_invitedUsers) {
 				UserInvitations.settings.set('invitedUsers', _invitedUsers);
 				UserInvitations.settings.persist();
 			});
 		}
+
+		Database.sortedSetScore('invitation:uid', userData.email.toLowerCase(), function (err, uid) {
+			if (err || !uid) return;
+			Database.sortedSetAdd('user:invitedby', uid, userData.uid);
+			Database.sortedSetRemove('invitation:uid', userData.email.toLowerCase());
+		});
+
 	}
 
+	// User register hook.
 	UserInvitations.checkInvitation = function (data, next) {
-		if (!UserInvitations.settings.get('restrictRegistration') || isInvited(data.userData.email.toLowerCase())) {
-			next(null, data);
-		}else{
-			next(new Error('[[error:not-invited]] ' + data.userData.email.toLowerCase()));
-		}
 
-		removeInvite(data.userData.email);
+		if (!UserInvitations.settings.get('restrictRegistration')) return next(null, data);
+
+		var email = data.userData.email.toLowerCase();
+
+		isInvited(email, function (err, invited) {
+			if (err || !invited) return next(new Error('[[error:not-invited]] ' + email));
+			next(null, data);
+		});
+	};
+
+	UserInvitations.userDelete = function (data, next) {
+		Database.sortedSetRemove('user:invitedby', data.uid);
+		next();
 	};
 
 	UserInvitations.admin = {

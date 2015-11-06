@@ -24,7 +24,7 @@
 					<label for="new-user-invite-user">[[invite:emails]]</label>
 					<textarea id="new-user-invite-user" class="form-control" placeholder="[[invite:email-placeholder]]"/></textarea>
 					<br>
-					<button class="btn btn-primary" id="new-user-invite-send">[[invite:send-invites]]</button>
+					<button type="button" class="btn btn-primary" id="new-user-invite-send">[[invite:send-invites]]</button>
 				</div>
 			</div>
 		</div>
@@ -50,8 +50,8 @@
 		<div class="panel panel-default">
 			<div class="panel-heading">[[invite:bulk-actions]]</div>
 			<div class="panel-body">
-				<button class="btn btn-warning" id="bulk-uninvite">[[invite:uninvite-all]]</button>
-				<button class="btn btn-success" id="bulk-reinvite">[[invite:resend-all]]</button>
+				<button type="button" class="btn btn-warning" id="bulk-uninvite">[[invite:uninvite-all]]</button>
+				<button type="button" class="btn btn-success" id="bulk-reinvite">[[invite:resend-all]]</button>
 			</div>
 		</div>
 	</div>

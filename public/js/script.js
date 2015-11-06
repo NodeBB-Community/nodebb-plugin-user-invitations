@@ -25,7 +25,7 @@ var	UserInvitations = function () {
 			socket.emit(UserInvitations.socketSend, {emails:emails}, callbackInvites);
 		}
 
-		function alertInvites(payload) {
+		UserInvitations.alertInvites = function (payload) {
 			if (payload.sent.length) {
 				app.alert({
 					type: 'success',
@@ -47,16 +47,11 @@ var	UserInvitations = function () {
 			}
 		}
 
-		function callbackReinvites(err, payload) {
-			alertInvites(payload);
-			UserInvitations.saveInvites();
-		}
-
 		function callbackInvites(err, payload) {
 			// Add invites to table.
 			UserInvitations.addInvites(payload.sent || [], function () {
 				// Alert user.
-				alertInvites(payload);
+				UserInvitations.alertInvites(payload);
 
 				// Save to database.
 				UserInvitations.saveInvites();
@@ -66,15 +61,8 @@ var	UserInvitations = function () {
 		function getInvited() { return $('#pending-invites .email').map(function(){ return $(this).text().replace(/[ \t]/g, ""); }).get(); }
 
 		$('#new-user-invite-send').on('click', sendInvites);
-
-		$('#pending-invites').on('click', '.user-uninvite', function () {
-			$(this).closest('tr').remove();
-			UserInvitations.saveInvites();
-		});
-
-		$('#pending-invites').on('click', '.user-reinvite', function () {
-			socket.emit(UserInvitations.socketSend, {emails:[$(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")]}, callbackReinvites);
-		});
+		$('#pending-invites').on('click', '.user-uninvite', function () { UserInvitations.uninvite.call(this); });
+		$('#pending-invites').on('click', '.user-reinvite', function () { UserInvitations.reinvite.call(this); });
 
 		$('#bulk-uninvite').on('click', function() {
 			bootbox.confirm("Are you sure? This will uninvite all invited users that have not yet accepted their invitation. This action is not reversible.", function (result) {
@@ -90,7 +78,10 @@ var	UserInvitations = function () {
 		$('#bulk-reinvite').on('click', function() {
 			bootbox.confirm("Are you sure? This will reinvite all invited users that have not yet accepted their invitation.", function (result) {
 				if (result) {
-					socket.emit(UserInvitations.socketSend, {emails:getInvited()}, callbackReinvites);
+					socket.emit(UserInvitations.socketSend, {emails:getInvited()}, function (err, payload) {
+						UserInvitations.alertInvites(payload);
+						UserInvitations.saveInvites();
+					});
 				}
 			});
 		});
@@ -112,6 +103,18 @@ define('admin/plugins/newuser-invitation', function () {
 					// Clear invite textarea.
 					$('#new-user-invite-user').val('');
 				});
+			});
+		};
+
+		UserInvitations.uninvite = function () {
+			$(this).closest('tr').remove();
+			UserInvitations.saveInvites();
+		};
+
+		UserInvitations.reinvite = function () {
+			socket.emit(UserInvitations.socketSend, {emails:[$(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")]}, function (err, payload) {
+				UserInvitations.alertInvites(payload);
+				UserInvitations.saveInvites();
 			});
 		};
 
@@ -154,8 +157,8 @@ define('admin/plugins/newuser-invitation', function () {
 						+ '<tr class="invite">'
 						+ '<td><span class="email">{{email}}</span></td>'
 						+ '<td class="text-right">'
-						+ '<button class="user-uninvite btn btn-warning">' + strUninvite + '</button>'
-						+ '<button class="user-reinvite btn btn-success">' + strReinvite + '</button>'
+						+ '<button type="button" class="user-uninvite btn btn-warning">' + strUninvite + '</button>'
+						+ '<button type="button" class="user-reinvite btn btn-success">' + strReinvite + '</button>'
 						+ '</td></tr>');
 					});
 				});
@@ -192,6 +195,20 @@ define('profile/invitations', function () {
 		});
 	};
 
+	UserInvitations.uninvite = function () {
+		socket.emit('plugins.invitation.uninvite', {email: $(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")}, function (err, payload) {
+			if (err) return console.log(err);
+			$(this).closest('tr').remove();
+		});
+	};
+
+	UserInvitations.reinvite = function () {
+		socket.emit('plugins.invitation.reinvite', {email: $(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")}, function (err, payload) {
+			if (err) return console.log(err);
+			UserInvitations.alertInvites(payload);
+		});
+	};
+
 	UserInvitations.socketSend = 'plugins.invitation.send';
 
 	function getInviteTemplate(next) {
@@ -205,8 +222,8 @@ define('profile/invitations', function () {
 						+ '<tr class="invite">'
 						+ '<td><span class="email">{{email}}</span></td>'
 						+ '<td class="text-right">'
-						+ '<button class="user-uninvite btn btn-warning">' + strUninvite + '</button>'
-						+ '<button class="user-reinvite btn btn-success">' + strReinvite + '</button>'
+						+ '<button type="button" class="user-uninvite btn btn-warning">' + strUninvite + '</button>'
+						+ '<button type="button" class="user-reinvite btn btn-success">' + strReinvite + '</button>'
 						+ '</td></tr>');
 					});
 				});
