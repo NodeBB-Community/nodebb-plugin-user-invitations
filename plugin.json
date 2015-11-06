@@ -1,7 +1,7 @@
 {
 	"id": "nodebb-plugin-newuser-invitation",
-	"name": "NodeBB New User Invitation Plugin",
-	"description": "A plugin for NodeBB to allow admins to invite new users.",
+	"name": "NodeBB User Invitation",
+	"description": "Allows current users to email invitations to potential new users.",
 	"url": "https://github.com/yariplus/nodebb-plugin-newuser-invitation",
 	"library": "./library.js",
 	"staticDirs": {
