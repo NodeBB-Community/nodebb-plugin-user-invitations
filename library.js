@@ -1,23 +1,56 @@
 "use strict";
 
-(function(UserInvitations, NodeBB){
+var	NodeBB   = module.parent,
+	Groups   = NodeBB.require('./groups'),
+	Meta     = NodeBB.require('./meta'),
+	User     = NodeBB.require('./user'),
+	Emailer  = NodeBB.require('./emailer'),
+	Plugins  = NodeBB.require('./plugins'),
+	Database = NodeBB.require('./database'),
 
-	var	Groups   = NodeBB.require('./groups'),
-		Meta     = NodeBB.require('./meta'),
-		User     = NodeBB.require('./user'),
-		Emailer  = NodeBB.require('./emailer'),
-		Plugins  = NodeBB.require('./plugins'),
-		Database = NodeBB.require('./database'),
+	Settings      = NodeBB.require('./settings'),
+	SocketAdmin   = NodeBB.require('./socket.io/admin'),
+	SocketPlugins = NodeBB.require('./socket.io/plugins'),
 
-		Settings      = NodeBB.require('./settings'),
-		SocketAdmin   = NodeBB.require('./socket.io/admin'),
-		SocketPlugins = NodeBB.require('./socket.io/plugins'),
+	fs      = require('fs'),
+	async   = require('async'),
+	nconf   = require('nconf'),
+	winston = require('winston'),
 
-		fs      = require('fs'),
-		async   = require('async'),
-		nconf   = require('nconf'),
-		winston = require('winston');
+	UserInvitations = module.exports;
 
+// Check database and admin settings for an invitation.
+function isInvited(email, next) {
+
+	var invitedUsers = UserInvitations.settings.get('invitedUsers');
+
+	if (!!~(invitedUsers ? invitedUsers.indexOf(email.toLowerCase()) : -1)) return next(null, true);
+
+	Database.isSortedSetMember('invitation:uid', email.toLowerCase(), next);
+
+}
+
+// Hook: static:app.load
+UserInvitations.init = function(data, callback) {
+
+	winston.info('[User-Invitations] Initializing User-Invitations...');
+
+	var	app        = data.app,
+		router     = data.router,
+		middleware = data.middleware;
+
+	// Log emailer availability.
+	function hasEmailer() {
+		if (Plugins.hasListeners('action:email.send')) {
+			return true;
+		} else {
+			winston.warn('[UserInvitations] No active email plugin found!');
+			return false;
+		}
+	}
+	hasEmailer();
+
+	// Send email and update database.
 	function sendInvite(params, group) {
 		var	url = nconf.get('url') + (nconf.get('url').slice(-1) === '/' ? '' : '/');
 
@@ -32,16 +65,7 @@
 			template: "New User Invitation"
 		});
 
-		if (params.from) addUserInvite(params);
-	}
-
-	function hasEmailer() {
-		if (Plugins.hasListeners('action:email.send')) {
-			return true;
-		} else {
-			winston.warn('[UserInvitations] No active email plugin found!');
-			return false;
-		}
+		if (params.from) Database.sortedSetAdd('invitation:uid', params.from, params.email.toLowerCase());
 	}
 
 	function filterEmails(emails, next) {
@@ -89,169 +113,140 @@
 		}, next);
 	}
 
-	function addUserInvite(data, next) {
-		Database.sortedSetAdd('invitation:uid', data.from, data.email.toLowerCase(), next);
-	}
+	// Socket events for user pages.
+	SocketPlugins.invitation = {
 
-	UserInvitations.init = function(data, callback) {
-		winston.info('[User-Invitations] Initializing User-Invitations...');
-		hasEmailer();
+		// Check availability of emails and send them.
+		send: function (socket, data, next) {
 
-		var	app        = data.app,
-			router     = data.router,
-			middleware = data.middleware;
+			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
+			if (!data || !data.emails || !Array.isArray(data.emails) || !data.emails.length) return next(new Error('[[fail_bad_data]]'));
+			if (!socket.uid) return;
 
-		SocketPlugins.invitation = {
+			filterEmails(data.emails, function (err, payload) {
+				getUserInvites(socket.uid, function (err, invites) {
+					if (err) return next(new Error('[[fail_db]]'));
 
-			// Check availability of emails and send them.
-			send: function (socket, data, next) {
-				if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
-				if (!data || !data.emails || !Array.isArray(data.emails) || !data.emails.length) return next(new Error('[[fail_bad_data]]'));
-				if (!socket.uid) return;
+					if (UserInvitations.settings.get('defaultUserInvites') - invites.invitesPending - invites.invitesAccepted < payload.sent.length) return next(new Error('[[not_enough_invites]]'));
 
-				filterEmails(data.emails, function (err, payload) {
-					getUserInvites(socket.uid, function (err, invites) {
-						if (err) return next(new Error('[[fail_db]]'));
-
-						if (UserInvitations.settings.get('defaultUserInvites') - invites.invitesPending - invites.invitesAccepted < payload.sent.length) return next(new Error('[[not_enough_invites]]'));
-
-						payload.sent.forEach(function(email){
-							sendInvite({email: email.toLowerCase(), from: socket.uid});
-						});
-
-						next(null, payload);
-					});
-				});
-			},
-
-			// User uninvite.
-			uninvite: function (socket, data, next) {
-
-				if (!(data && data.email)) return next(new Error("No email to reinvite."));
-
-				var email = data.email.toLowerCase();
-
-				Database.sortedSetScore('invitation:uid', email, function (err, uid) {
-					if (err || !uid) return next(err || new Error("Database error uninviting " + email));
-					if (parseInt(uid, 10) !== socket.uid) return next(new Error("User not invited by you."));
-
-					Database.sortedSetRemove('invitation:uid', email, next);
-				});
-			},
-
-			// User reinvite.
-			reinvite: function (socket, data, next) {
-
-				if (!(data && data.email)) return next(new Error("No email to reinvite."));
-
-				var email = data.email.toLowerCase();
-
-				Database.sortedSetScore('invitation:uid', email, function (err, uid) {
-					if (err || !uid) return next(err || new Error("Database error uninviting " + email));
-					if (parseInt(uid, 10) !== socket.uid) return next(new Error("User not invited by you."));
-
-					sendInvite({email: email, from: socket.uid});
-					next();
-				});
-			}
-		};
-
-		SocketAdmin.invitation = {
-
-			// Check availability of an array of emails and send them.
-			send: function (socket, data, next) {
-				if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
-				if (!data || !data.emails || !Array.isArray(data.emails)) return next(new Error('[[fail_bad_data]]'));
-
-				filterEmails(data.emails, function (err, payload) {
 					payload.sent.forEach(function(email){
-						sendInvite({email: email});
+						sendInvite({email: email.toLowerCase(), from: socket.uid});
 					});
 
 					next(null, payload);
 				});
-			}
-
-		};
-
-		function render(req, res, next) {
-			Groups.getGroupsFromSet('groups:createtime', 0, 0, -1, function(err, groups) {
-				if (err) return groups = [];
-				groups = groups.filter(function (element, index, array) {
-					if (element.name.match('privileges')) return false;
-					return true;
-				});
-
-				res.render('admin/plugins/newuser-invitation', {groups: groups});
 			});
-		}
+		},
 
-		router.get('/admin/plugins/newuser-invitation', middleware.admin.buildHeader, render);
-		router.get('/api/admin/plugins/newuser-invitation', render);
+		// User uninvite.
+		uninvite: function (socket, data, next) {
 
-		function renderUserInvitations(req, res, next) {
-			User.getUidByUserslug(req.params.user, function(err, uid) {
-				if (err || !uid) return res.redirect('/');
+			if (!(data && data.email)) return next(new Error("No email to reinvite."));
+			var email = data.email.toLowerCase();
 
-				getUserInvites(uid, function (err, renderData) {
-					if (err) return res.redirect('/');
+			Database.sortedSetScore('invitation:uid', email, function (err, uid) {
+				if (err || !uid) return next(err || new Error("Database error uninviting " + email));
+				if (parseInt(uid, 10) !== socket.uid) return next(new Error("User not invited by you."));
 
-					renderData.maxInvites         = UserInvitations.settings.get('defaultInvitations');
-					renderData.numInvitesPending  = renderData.invitesPending.length;
-					renderData.numInvitesAccepted = renderData.invitesAccepted.length;
-					renderData.invitesAvailable   = UserInvitations.settings.get('defaultInvitations') - renderData.numInvitesPending - renderData.numInvitesAccepted;
-					renderData.invitesAvailable   = renderData.invitesAvailable < 0 ? 0 : renderData.invitesAvailable;
-
-					renderData.yourprofile = parseInt(uid, 10) === req.uid;
-
-					renderData.invitesPending = renderData.invitesPending.map(function (email) { return {email:email}; });
-
-					console.dir(renderData.invitesPending);
-					res.render('account/invitations', renderData);
-				});
+				Database.sortedSetRemove('invitation:uid', email, next);
 			});
-		}
+		},
 
-		router.get('/user/:user/invitations', middleware.buildHeader, renderUserInvitations);
-		router.get('/api/user/:user/invitations', renderUserInvitations);
+		// User reinvite.
+		reinvite: function (socket, data, next) {
 
-		var defaultSettings = {
-			defaultInvitations: 10,
-			restrictRegistration: 1,
-			invitedUsers: []
-		};
+			if (!(data && data.email)) return next(new Error("No email to reinvite."));
+			var email = data.email.toLowerCase();
 
-		function logSettings() {
-			winston.info('[User-Invitations] Synced settings:', UserInvitations.settings.get());
-			warnRestriction();
-		}
+			Database.sortedSetScore('invitation:uid', email, function (err, uid) {
+				if (err || !uid) return next(err || new Error("Database error uninviting " + email));
+				if (parseInt(uid, 10) !== socket.uid) return next(new Error("User not invited by you."));
 
-		function warnRestriction() {
-			if (!!UserInvitations.settings.get('restrictRegistration')) winston.warn('[User-Invitations] Restricting new user registration to invited users only!!!');
-		}
-
-		UserInvitations.settings = new Settings('userinvitations', '1.0.0', defaultSettings, function () {
-			logSettings();
-			UserInvitations.importOldSettings();
-		});
-
-		SocketAdmin.settings.syncUserInvitations = function (socket, data, next) {
-			var diffDefaultInvitations = UserInvitations.settings.get('defaultInvitations');
-			UserInvitations.settings.sync(function () {
-				logSettings();
-				diffDefaultInvitations = UserInvitations.settings.get('defaultInvitations') - diffDefaultInvitations;
-				if (diffDefaultInvitations) {
-					// Adjust available invitations for each user by diffDefaultInvitations.
-				}
-
+				sendInvite({email: email, from: socket.uid});
 				next();
 			});
-		};
-
-		callback();
+		}
 	};
 
-	UserInvitations.importOldSettings = function () {
+	SocketAdmin.invitation = {
+
+		// Check availability of an array of emails and send them.
+		send: function (socket, data, next) {
+			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
+			if (!data || !data.emails || !Array.isArray(data.emails)) return next(new Error('[[fail_bad_data]]'));
+
+			filterEmails(data.emails, function (err, payload) {
+				payload.sent.forEach(function(email){
+					sendInvite({email: email.toLowerCase()});
+				});
+
+				next(null, payload);
+			});
+		}
+
+	};
+
+	function render(req, res, next) {
+		Groups.getGroupsFromSet('groups:createtime', 0, 0, -1, function(err, groups) {
+			if (err) return groups = [];
+			groups = groups.filter(function (element, index, array) {
+				if (element.name.match('privileges')) return false;
+				return true;
+			});
+
+			res.render('admin/plugins/newuser-invitation', {groups: groups});
+		});
+	}
+
+	router.get('/admin/plugins/newuser-invitation', middleware.admin.buildHeader, render);
+	router.get('/api/admin/plugins/newuser-invitation', render);
+
+	function renderUserInvitations(req, res, next) {
+		User.getUidByUserslug(req.params.user, function(err, uid) {
+			if (err || !uid) return res.redirect('/');
+
+			getUserInvites(uid, function (err, renderData) {
+				if (err) return res.redirect('/');
+
+				renderData.maxInvites         = UserInvitations.settings.get('defaultInvitations');
+				renderData.numInvitesPending  = renderData.invitesPending.length;
+				renderData.numInvitesAccepted = renderData.invitesAccepted.length;
+				renderData.invitesAvailable   = UserInvitations.settings.get('defaultInvitations') - renderData.numInvitesPending - renderData.numInvitesAccepted;
+				renderData.invitesAvailable   = renderData.invitesAvailable < 0 ? 0 : renderData.invitesAvailable;
+
+				renderData.yourprofile = parseInt(uid, 10) === req.uid;
+
+				renderData.invitesPending = renderData.invitesPending.map(function (email) { return {email:email}; });
+
+				console.dir(renderData.invitesPending);
+				res.render('account/invitations', renderData);
+			});
+		});
+	}
+
+	router.get('/user/:user/invitations', middleware.buildHeader, renderUserInvitations);
+	router.get('/api/user/:user/invitations', renderUserInvitations);
+
+	var	defaultSettings = {
+		defaultInvitations: 10,
+		restrictRegistration: 1,
+		invitedUsers: []
+	};
+
+	function logSettings() {
+		winston.info('[User-Invitations] Synced settings:', UserInvitations.settings.get());
+		warnRestriction();
+	}
+
+	function warnRestriction() {
+		if (!!UserInvitations.settings.get('restrictRegistration')) winston.warn('[User-Invitations] Restricting new user registration to invited users only!!!');
+	}
+
+	UserInvitations.settings = new Settings('userinvitations', '1.0.0', defaultSettings, function () {
+
+		logSettings();
+
+		// Import v0.1.0 Settings
 		Meta.settings.get('newuser-invitation', function(err, settings) {
 			if (err || !settings || !settings.invitedUsers) return;
 
@@ -272,32 +267,36 @@
 				winston.warn(e);
 			}
 		});
-	};
 
-	// New user hook.
-	UserInvitations.moveUserToGroup = function (userData) {
+	});
 
-		var	inviteGroup = UserInvitations.settings.get('inviteGroup');
-		if (!inviteGroup) return;
+	SocketAdmin.settings.syncUserInvitations = function (socket, data, next) {
 
-		isInvited(userData.email.toLowerCase(), function (err, invited) {
-			if (err) return;
-			if (invited) Groups.join(inviteGroup, userData.uid);
-			acceptInvite(userData);
+		var	diffDefaultInvitations = UserInvitations.settings.get('defaultInvitations');
+
+		UserInvitations.settings.sync(function () {
+			logSettings();
+			diffDefaultInvitations = UserInvitations.settings.get('defaultInvitations') - diffDefaultInvitations;
+			if (diffDefaultInvitations) {
+				// Adjust available invitations for each user by diffDefaultInvitations.
+			}
+
+			next();
 		});
-
 	};
 
-	function isInvited(email, next) {
+	callback();
+};
 
-		var invitedUsers = UserInvitations.settings.get('invitedUsers');
+// Hook: action:user.create
+UserInvitations.acceptInvite = function (userData) {
 
-		if (!!~(invitedUsers ? invitedUsers.indexOf(email.toLowerCase()) : -1)) return next(null, true);
+	var	inviteGroup = UserInvitations.settings.get('inviteGroup');
+	if (!inviteGroup) return;
 
-		Database.isSortedSetMember('invitation:uid', email.toLowerCase(), next);
-	}
-
-	function acceptInvite(userData) {
+	isInvited(userData.email.toLowerCase(), function (err, invited) {
+		if (err) return;
+		if (invited) Groups.join(inviteGroup, userData.uid);
 
 		var invitedUsers = UserInvitations.settings.get('invitedUsers');
 
@@ -315,48 +314,50 @@
 			Database.sortedSetAdd('user:invitedby', uid, userData.uid);
 			Database.sortedSetRemove('invitation:uid', userData.email.toLowerCase());
 		});
+	});
 
+};
+
+// Hook: filter:register.check
+UserInvitations.checkInvitation = function (data, next) {
+
+	if (!UserInvitations.settings.get('restrictRegistration')) return next(null, data);
+
+	var email = data.userData.email.toLowerCase();
+
+	isInvited(email, function (err, invited) {
+		if (err || !invited) return next(new Error('[[error:not-invited]] ' + email));
+		next(null, data);
+	});
+};
+
+// Hook: static:user.delete
+UserInvitations.userDelete = function (data, next) {
+	Database.sortedSetRemove('user:invitedby', data.uid);
+	next();
+};
+
+// Hook: filter:admin.header.build
+UserInvitations.admin = {
+	menu: function (custom_header, callback) {
+		custom_header.plugins.push({
+			"route": '/plugins/newuser-invitation',
+			"icon": 'fa-check',
+			"name": 'User Invitations'
+		});
+
+		callback(null, custom_header);
 	}
+};
 
-	// User register hook.
-	UserInvitations.checkInvitation = function (data, next) {
-
-		if (!UserInvitations.settings.get('restrictRegistration')) return next(null, data);
-
-		var email = data.userData.email.toLowerCase();
-
-		isInvited(email, function (err, invited) {
-			if (err || !invited) return next(new Error('[[error:not-invited]] ' + email));
-			next(null, data);
-		});
-	};
-
-	UserInvitations.userDelete = function (data, next) {
-		Database.sortedSetRemove('user:invitedby', data.uid);
-		next();
-	};
-
-	UserInvitations.admin = {
-		menu: function (custom_header, callback) {
-			custom_header.plugins.push({
-				"route": '/plugins/newuser-invitation',
-				"icon": 'fa-check',
-				"name": 'User Invitations'
-			});
-
-			callback(null, custom_header);
-		}
-	};
-
-	UserInvitations.addProfileLink = function (links, next) {
-		links.push({
-			id: 'userinvitations',
-			public: true,
-			route: 'invitations',
-			icon: 'fa-envelope',
-			name: 'Invitations'
-		});
-		next(null, links);
-	};
-
-}(module.exports, module.parent));
+// Hook: filter:user.profileLinks
+UserInvitations.addProfileLink = function (links, next) {
+	links.push({
+		id: 'userinvitations',
+		public: true,
+		route: 'invitations',
+		icon: 'fa-envelope',
+		name: 'Invitations'
+	});
+	next(null, links);
+};
