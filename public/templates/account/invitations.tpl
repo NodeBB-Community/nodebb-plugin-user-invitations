@@ -1,28 +1,26 @@
 <form id="userinvitations">
 
 <div class="panel panel-default">
-	<div class="panel-heading"><i class="fa fa-cog"></i> Your Invitations</div>
+	<div class="panel-heading"><i class="fa fa-cog"></i>[[invite:title-stats]]</div>
 	<div class="panel-body">
 		<div class="form-group col-sm-12">
-			<strong>[[invite:user-available-invites, {user.name}]]:</strong> {invitesAvailable}/{maxInvites}
+			<strong>[[invite:user-available, {user.name}]]:</strong> {invitesAvailable}/{maxInvites}
 			<br>
-			<strong>[[invite:user-pending-invites, {user.name}]]:</strong> {numInvitesPending}
+			<strong>[[invite:user-pending, {user.name}]]:</strong> {numInvitesPending}
 			<br>
-			<strong>[[invite:user-accepted-invites, {user.name}]]:</strong> {numInvitesAccepted}
+			<strong>[[invite:user-accepted, {user.name}]]:</strong> {numInvitesAccepted}
 		</div>
 	</div>
 </div>
 
 <!-- IF yourprofile -->
 <div class="panel panel-default">
-	<div class="panel-heading"><i class="fa fa-envelope-o"></i> [[invite:send-invites]]</div>
+	<div class="panel-heading"><i class="fa fa-envelope-o"></i> [[invite:title-emails]]</div>
 	<div class="panel-body">
 		<div class="form-group col-sm-12">
-			<div class="h5">[[invite:emails-info]]</div>
-			<label for="new-user-invite-user">[[invite:emails]]</label>
-			<textarea id="new-user-invite-user" class="form-control" placeholder="[[invite:email-placeholder]]"/></textarea>
-			<br>
-			<button type="button" class="btn btn-primary" id="new-user-invite-send">[[invite:send-invites]]</button>
+			<label for="new-user-invite-user">[[invite:info-emails]]</label>
+			<textarea id="new-user-invite-user" class="form-control" placeholder="[[invite:placeholder-emails]]"/></textarea><br>
+			<button type="button" class="btn btn-primary" id="new-user-invite-send">[[invite:button-emails]]</button>
 		</div>
 	</div>
 </div>
@@ -33,20 +31,20 @@
 <!-- ENDIF yourprofile -->
 
 <div class="panel panel-default">
-	<div class="panel-heading"><i class="fa fa-user"></i> [[invite:user-pending-invites-list, {user.name}]]</div>
+	<div class="panel-heading"><i class="fa fa-user"></i> [[invite:title-invited, {user.name}]]</div>
 	<div class="panel-body">
-		<div class="h5">[[invite:user-pending-invites-info, {user.name}]]</div>
+		<div class="h5">[[invite:info-invited, {user.name}]]</div>
 		<table id="pending-invites" class="table new-users">
 			<thead>
-				<th>E-mail</th>
+				<th>[[invite:email]]</th>
 				<th></th>
 			</thead>
 			<!-- BEGIN invitesPending -->
 			<tr class="invite">
 				<td><span class="email">{invitesPending.email}</span></td>
 				<td class="text-right">
-					<button type="button" class="user-uninvite btn btn-warning">[[invite:uninvite]]</button>
-					<button type="button" class="user-reinvite btn btn-success">[[invite:resend]]</button>
+					<button type="button" class="user-uninvite btn btn-warning">[[invite:button-uninvite]]</button>
+					<button type="button" class="user-reinvite btn btn-success">[[invite:button-resend]]</button>
 				</td>
 			</tr>
 			<!-- END invitesPending -->
@@ -55,12 +53,12 @@
 </div>
 
 <div class="panel panel-default">
-	<div class="panel-heading"><i class="fa fa-user"></i> [[invite:user-accepted-invites-list, {user.name}]]</div>
+	<div class="panel-heading"><i class="fa fa-user"></i> [[invite:title-accepted, {user.name}]]</div>
 	<div class="panel-body">
-		<div class="h5">[[invite:user-accepted-invites-info, {user.name}]]</div>
+		<div class="h5">[[invite:info-accepted, {user.name}]]</div>
 		<table id="users-container" class="table new-users">
 			<thead>
-				<th>E-mail</th>
+				<th>[[invite:email]]</th>
 				<th></th>
 			</thead>
 		</table>

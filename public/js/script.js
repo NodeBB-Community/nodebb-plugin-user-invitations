@@ -151,8 +151,8 @@ define('admin/plugins/newuser-invitation', function () {
 			next(UserInvitations.inviteTemplate);
 		}else{
 			require(['translator'], function (translator) {
-				translator.translate("[[invite:uninvite]]", function (strUninvite) {
-					translator.translate("[[invite:resend]]", function (strReinvite) {
+				translator.translate("[[invite:button-uninvite]]", function (strUninvite) {
+					translator.translate("[[invite:button-resend]]", function (strReinvite) {
 						next(''
 						+ '<tr class="invite">'
 						+ '<td><span class="email">{{email}}</span></td>'
@@ -216,8 +216,8 @@ define('profile/invitations', function () {
 			next(UserInvitations.inviteTemplate);
 		}else{
 			require(['translator'], function (translator) {
-				translator.translate("[[invite:uninvite]]", function (strUninvite) {
-					translator.translate("[[invite:resend]]", function (strReinvite) {
+				translator.translate("[[invite:button-uninvite]]", function (strUninvite) {
+					translator.translate("[[invite:button-resend]]", function (strReinvite) {
 						next(''
 						+ '<tr class="invite">'
 						+ '<td><span class="email">{{email}}</span></td>'
