@@ -60,7 +60,18 @@
 			<tbody>
 				<!-- BEGIN invitesAccepted -->
 				<tr>
-					<td><a href="/user/{invitesAccepted.userslug}">{invitesAccepted.username}</a></td>
+					<td style="width:0px;">
+						<span class="topic"><span class="posts"><span class="icon">
+						<a href="/user/{invitesAccepted.userslug}">
+						<!-- IF invitesAccepted.picture -->
+						<img title="{invitesAccepted.username}" class="img-rounded" src="{invitesAccepted.picture}">
+						<!-- ELSE -->
+						<div class="user-icon" style="background-color: {invitesAccepted.icon:bgColor};" title="{invitesAccepted.username}">{invitesAccepted.icon:text}</div>
+						<!-- ENDIF invitesAccepted.picture -->
+						</span></span></span>
+						</a>
+					</td>
+					<td style="vertical-align:middle;"><a href="/user/{invitesAccepted.userslug}">{invitesAccepted.username}</a></td>
 				</tr>
 				<!-- END invitesAccepted -->
 			</tbody>
