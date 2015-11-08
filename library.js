@@ -218,7 +218,6 @@ UserInvitations.init = function(data, callback) {
 
 				renderData.invitesPending = renderData.invitesPending.map(function (email) { return {email:email}; });
 
-				console.dir(renderData.invitesPending);
 				res.render('account/invitations', renderData);
 			});
 		});

@@ -57,10 +57,13 @@
 	<div class="panel-body">
 		<div class="h5">[[invite:info-accepted, {user.name}]]</div>
 		<table id="users-container" class="table new-users">
-			<thead>
-				<th>[[invite:email]]</th>
-				<th></th>
-			</thead>
+			<tbody>
+				<!-- BEGIN invitesAccepted -->
+				<tr>
+					<td><a href="/user/{invitesAccepted.userslug}">{invitesAccepted.username}</a></td>
+				</tr>
+				<!-- END invitesAccepted -->
+			</tbody>
 		</table>
 	</div>
 </div>
