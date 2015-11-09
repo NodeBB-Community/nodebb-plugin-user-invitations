@@ -19,6 +19,8 @@ var	NodeBB   = module.parent,
 
 	UserInvitations = module.exports;
 
+function prepend(msg) { return "[User-Invitations] " + msg; }
+
 // Check database and admin settings for an invitation.
 function isInvited(email, next) {
 
@@ -33,22 +35,15 @@ function isInvited(email, next) {
 // Hook: static:app.load
 UserInvitations.init = function(data, callback) {
 
-	winston.info('[User-Invitations] Initializing User-Invitations...');
+	winston.info(prepend("Initializing User-Invitations..."));
 
 	var	app        = data.app,
 		router     = data.router,
 		middleware = data.middleware;
 
 	// Log emailer availability.
-	function hasEmailer() {
-		if (Plugins.hasListeners('action:email.send')) {
-			return true;
-		} else {
-			winston.warn('[UserInvitations] No active email plugin found!');
-			return false;
-		}
-	}
-	hasEmailer();
+	function hasEmailer() { return Plugins.hasListeners('action:email.send'); }
+	if (hasEmailer()) winston.warn(prepend("No active email plugin found!"));
 
 	// Send email and update database.
 	function sendInvite(params, group) {
@@ -233,12 +228,12 @@ UserInvitations.init = function(data, callback) {
 	};
 
 	function logSettings() {
-		winston.info('[User-Invitations] Synced settings:', UserInvitations.settings.get());
+		winston.info(prepend("Synced settings:"), UserInvitations.settings.get());
 		warnRestriction();
 	}
 
 	function warnRestriction() {
-		if (!!UserInvitations.settings.get('restrictRegistration')) winston.warn('[User-Invitations] Restricting new user registration to invited users only!!!');
+		if (!!UserInvitations.settings.get('restrictRegistration')) winston.warn(prepend("Restricting new user registration to invited users only!!!"));
 	}
 
 	UserInvitations.settings = new Settings('userinvitations', '1.0.0', defaultSettings, function () {
@@ -249,21 +244,19 @@ UserInvitations.init = function(data, callback) {
 		Meta.settings.get('newuser-invitation', function(err, settings) {
 			if (err || !settings || !settings.invitedUsers) return;
 
-			winston.info('[User-Invitations] Found old invite data, importing...');
+			winston.info(prepend("Found old invite data, importing..."));
 
 			try {
 				var invitedUsers = settings.invitedUsers ? JSON.parse(settings.invitedUsers) : [];
 				invitedUsers = UserInvitations.settings.get('invitedUsers').concat(invitedUsers);
 				UserInvitations.settings.set('invitedUsers', invitedUsers);
 				UserInvitations.settings.persist(function () {
-					winston.info('[User-Invitations] Successfully imported old invite data! Logging it on the screen...');
-					winston.info('[User-Invitations]', UserInvitations.settings.get('invitedUsers'));
+					winston.info(prepend("Successfully imported old invite data! Logging it on the screen..."), UserInvitations.settings.get('invitedUsers'));
 					Database.delete('settings:newuser-invitation');
 				});
 			}catch(e){
-				winston.warn('[User-Invitations] Error importing old invite data, puking it onto the screen...');
-				winston.info(settings);
-				winston.warn(e);
+				winston.warn(prepend("Error importing old invite data, puking it onto the screen..."), settings);
+				winston.warn("", e);
 			}
 		});
 

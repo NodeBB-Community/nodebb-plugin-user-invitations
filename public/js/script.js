@@ -131,7 +131,6 @@ define('admin/plugins/newuser-invitation', function () {
 		UserInvitations.reinvite = function () {
 			socket.emit(UserInvitations.socketSend, {emails:[$(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")]}, function (err, payload) {
 				UserInvitations.alertInvites(payload);
-				UserInvitations.saveInvites();
 			});
 		};
 
