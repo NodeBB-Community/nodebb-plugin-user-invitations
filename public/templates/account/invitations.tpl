@@ -1,14 +1,14 @@
 <form id="userinvitations">
 
 <div class="panel panel-default">
-	<div class="panel-heading"><i class="fa fa-cog"></i>[[invite:title-stats]]</div>
+	<div class="panel-heading"><i class="fa fa-cog"></i> [[invite:title-stats]]</div>
 	<div class="panel-body">
 		<div class="form-group col-sm-12">
-			<strong>[[invite:user-available, {user.name}]]:</strong> {invitesAvailable}/{maxInvites}
+			<strong>[[invite:user-available, {user.name}]]:</strong> <span class="invites-available">{invitesAvailable}</span>/{maxInvites}
 			<br>
-			<strong>[[invite:user-pending, {user.name}]]:</strong> {numInvitesPending}
+			<strong>[[invite:user-pending, {user.name}]]:</strong> <span class="invites-pending">{numInvitesPending}</span>
 			<br>
-			<strong>[[invite:user-accepted, {user.name}]]:</strong> {numInvitesAccepted}
+			<strong>[[invite:user-accepted, {user.name}]]:</strong> <span class="invites-accepted">{numInvitesAccepted}</span>
 		</div>
 	</div>
 </div>

@@ -163,7 +163,7 @@ UserInvitations.init = function(data, callback) {
 				if (parseInt(uid, 10) !== socket.uid) return next(new Error("User not invited by you."));
 
 				sendInvite({email: email, from: socket.uid});
-				next();
+				next(null, {sent: [email]});
 			});
 		}
 	};

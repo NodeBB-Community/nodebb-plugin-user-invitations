@@ -55,6 +55,15 @@ var	UserInvitations = function () {
 
 				// Save to database.
 				UserInvitations.saveInvites();
+
+				// Clear invite textarea.
+				$('#new-user-invite-user').val('');
+
+				// Update profile stats list.
+				if ($('.invites-available').length) {
+					$('.invites-available').text(parseInt($('.invites-available').text()) - payload.sent.length);
+					$('.invites-pending').text(parseInt($('.invites-pending').text()) + payload.sent.length);
+				}
 			});
 		}
 
@@ -185,20 +194,15 @@ define('admin/plugins/newuser-invitation', function () {
 });
 
 define('profile/invitations', function () {
-	UserInvitations.saveInvites = function () {
-		socket.emit('plugins.invitation.syncUserInvitations', {}, function () {
-			// Clear unavailable list.
-			unavailable = [];
-
-			// Clear invite textarea.
-			$('#new-user-invite-user').val('');
-		});
-	};
+	UserInvitations.saveInvites = function () {};
 
 	UserInvitations.uninvite = function () {
+		var that = this;
 		socket.emit('plugins.invitation.uninvite', {email: $(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")}, function (err, payload) {
 			if (err) return console.log(err);
-			$(this).closest('tr').remove();
+			$(that).closest('tr').remove();
+			$('.invites-available').text(parseInt($('.invites-available').text()) + 1);
+			$('.invites-pending').text(parseInt($('.invites-pending').text()) - 1);
 		});
 	};
 
