@@ -48,6 +48,14 @@ var	UserInvitations = function () {
 		}
 
 		function callbackInvites(err, payload) {
+
+			if (err) return app.alert({
+				type: 'danger',
+				alert_id: 'fail-invitations',
+				title: err.message,
+				timeout: 15000
+			});
+
 			// Add invites to table.
 			UserInvitations.addInvites(payload.sent || [], function () {
 				// Alert user.
