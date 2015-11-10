@@ -7,11 +7,15 @@ var	UserInvitations = function () {
 		var unavailable = [];
 
 		function sendInvites(e) {
-			e.preventDefault();
 
-			var emails = $('#new-user-invite-user').val().toLowerCase().replace(/[ \t]/g, "").match(/[^,"\n\r]*@[^,"\n\r]+\.[^,"\n\r]+/g),
+			// Get emails.
+			var	emails = $('#new-user-invite-user').val().toLowerCase().replace(/[ \t]/g, "").match(/[^,"\n\r]*@[^,"\n\r]+\.[^,"\n\r]+/g),
 				invited = getInvited();
 
+			// Clear unavailable list.
+			unavailable = [];
+
+			// Filter emails that are already invited.
 			emails = emails.sort().filter(function(email, i, ary) {
 				if (invited.indexOf(email) !== -1) {
 					if (unavailable.indexOf(email) === -1) unavailable.push(email);
@@ -36,12 +40,13 @@ var	UserInvitations = function () {
 				});
 			}
 
-			if (payload.unavailable.length || unavailable.length) {
+			payload.unavailable = payload.unavailable.concat(unavailable);
+			if (payload.unavailable.length) {
 				app.alert({
 					type: 'danger',
 					alert_id: 'newuser-invitation-failed',
 					title: "Already Invited",
-					message: payload.unavailable.concat(unavailable).join(', '),
+					message: payload.unavailable.join(', '),
 					timeout: 15000
 				});
 			}
@@ -58,6 +63,7 @@ var	UserInvitations = function () {
 
 			// Add invites to table.
 			UserInvitations.addInvites(payload.sent || [], function () {
+
 				// Alert user.
 				UserInvitations.alertInvites(payload);
 
@@ -114,11 +120,10 @@ define('admin/plugins/newuser-invitation', function () {
 		UserInvitations.saveInvites = function () {
 			settings.persist('userinvitations', $('#userinvitations'), function () {
 				socket.emit('admin.settings.syncUserInvitations', {}, function () {
-					// Clear unavailable list.
-					unavailable = [];
 
 					// Clear invite textarea.
 					$('#new-user-invite-user').val('');
+
 				});
 			});
 		};
@@ -129,7 +134,7 @@ define('admin/plugins/newuser-invitation', function () {
 		};
 
 		UserInvitations.reinvite = function () {
-			socket.emit(UserInvitations.socketSend, {emails:[$(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")]}, function (err, payload) {
+			socket.emit('admin.invitation.reinvite', {email:$(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")}, function (err, payload) {
 				UserInvitations.alertInvites(payload);
 			});
 		};
@@ -147,9 +152,8 @@ define('admin/plugins/newuser-invitation', function () {
 					values.push($(this).find('.email').text());
 				});
 
-				console.log("Saw values:", values);
-
 				return values;
+
 			}
 		});
 

@@ -21,15 +21,14 @@ var	NodeBB   = module.parent,
 
 function prepend(msg) { return "[User-Invitations] " + msg; }
 
-// Check database and admin settings for an invitation.
-function isInvited(email, next) {
-
+function isInvitedByAdmin(email, next) {
 	var invitedUsers = UserInvitations.settings.get('invitedUsers');
-
 	if (!!~(invitedUsers ? invitedUsers.indexOf(email.toLowerCase()) : -1)) return next(null, true);
+	next(null, false);
+}
 
+function isInvitedByUser(email, next) {
 	Database.isSortedSetMember('invitation:uid', email.toLowerCase(), next);
-
 }
 
 // Hook: static:app.load
@@ -76,7 +75,8 @@ UserInvitations.init = function(data, callback) {
 			email = email.toLowerCase();
 
 			async.parallel({
-				invitedBy: async.apply(Database.sortedSetScore, 'invitation:uid', email),
+				isInvitedByAdmin: async.apply(isInvitedByAdmin, email),
+				isInvitedByUser: async.apply(isInvitedByUser, email),
 				available: async.apply(User.email.available, email)
 			}, function (err, results) {
 				if (err) {
@@ -84,7 +84,7 @@ UserInvitations.init = function(data, callback) {
 					return next();
 				}
 
-				if (!results.available || results.invitedBy) {
+				if (!results.available || results.isInvitedByAdmin || results.isInvitedByUser) {
 					payload.unavailable.push(email);
 					return next();
 				}
@@ -114,11 +114,13 @@ UserInvitations.init = function(data, callback) {
 		// Check availability of emails and send them.
 		send: function (socket, data, next) {
 
-			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
-			if (!data || !data.emails || !Array.isArray(data.emails) || !data.emails.length) return next(new Error('[[fail_bad_data]]'));
 			if (!socket.uid) return;
+			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
+			if (!data || !data.emails || !Array.isArray(data.emails) || !data.emails.length) return next(new Error('[[fail_no_emails]]'));
 
 			filterEmails(data.emails, function (err, payload) {
+
+				// Check that the user has enough available invites to send.
 				getUserInvites(socket.uid, function (err, invites) {
 					if (err) return next(new Error('[[fail_db]]'));
 
@@ -136,8 +138,11 @@ UserInvitations.init = function(data, callback) {
 		// User uninvite.
 		uninvite: function (socket, data, next) {
 
-			if (!(data && data.email)) return next(new Error("No email to reinvite."));
-			var email = data.email.toLowerCase();
+			if (!socket.uid) return;
+			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
+			if (!(data && data.email)) return next(new Error("No email to uninvite."));
+
+			var	email = data.email.toLowerCase();
 
 			Database.sortedSetScore('invitation:uid', email, function (err, uid) {
 				if (err || !uid) return next(err || new Error("Database error uninviting " + email));
@@ -150,8 +155,11 @@ UserInvitations.init = function(data, callback) {
 		// User reinvite.
 		reinvite: function (socket, data, next) {
 
+			if (!socket.uid) return;
+			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
 			if (!(data && data.email)) return next(new Error("No email to reinvite."));
-			var email = data.email.toLowerCase();
+
+			var	email = data.email.toLowerCase();
 
 			Database.sortedSetScore('invitation:uid', email, function (err, uid) {
 				if (err || !uid) return next(err || new Error("Database error uninviting " + email));
@@ -167,6 +175,7 @@ UserInvitations.init = function(data, callback) {
 
 		// Check availability of an array of emails and send them.
 		send: function (socket, data, next) {
+
 			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
 			if (!data || !data.emails || !Array.isArray(data.emails)) return next(new Error('[[fail_bad_data]]'));
 
@@ -177,6 +186,19 @@ UserInvitations.init = function(data, callback) {
 
 				next(null, payload);
 			});
+		},
+
+		reinvite: function (socket, data, next) {
+
+			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
+			if (!(data && data.email)) return next(new Error("No email to reinvite."));
+
+			var email = data.email.toLowerCase();
+
+			sendInvite({email: email});
+
+			next(null, {sent: [email]});
+
 		}
 
 	};
