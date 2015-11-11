@@ -1,5 +1,5 @@
 # NodeBB User Invitations
-**source:** [https://github.com/yariplus/nodebb-plugin-user-invitations](https://github.com/yariplus/nodebb-plugin-user-invitations)
+
 This NodeBB plugin allows current users to send email invitations to potential new users.
 
 ## Sending Invitations
