@@ -5,7 +5,7 @@
 	"main": "library.js",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/yariplus/nodebb-plugin-user-invitations"
+		"url": "https://github.com/NodeBB-Community/nodebb-plugin-user-invitations"
 	},
 	"keywords": [
 		"nodebb",
@@ -19,7 +19,7 @@
 		"email": "tafike@gmail.com"
 	},
 	"license": "(CC0-1.0 OR MIT)",
-	"bugs": { "url": "https://github.com/yariplus/nodebb-plugin-user-invitations/issues" },
-	"homepage": "https://github.com/yariplus/nodebb-plugin-user-invitations",
+	"bugs": { "url": "https://github.com/NodeBB-Community/nodebb-plugin-user-invitations/issues" },
+	"homepage": "https://github.com/NodeBB-Community/nodebb-plugin-user-invitations",
 	"nbbpm": { "compatibility": "^0.8.0 || ^0.9.0" }
 }
