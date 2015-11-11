@@ -1,29 +1,20 @@
-# NodeBB New User Invitation
+# NodeBB User Invitations
 
-This NodeBB plugin allows forum admins to restrict registration or group membership to only users they invite.
+This NodeBB plugin allows current users to email invitations to potential new users.
 
-### Usage
+## Sending Invitations
 
-The plugin is controlled via the admin page "New User Invitation" under the "Installed Plugins" heading.
+Users can send invitations from the 'User Invitations' page listed on their profile links menu.
 
-![Admin Page](http://puu.sh/iVRRo.png)
+Admins can also send invitations from the 'User Invitations' page in the ACP.
 
-Enter the emails of users you wish to invite. CSVs are accepted here, and non-email data is filtered out automagically.
+## Configuration
 
-![Invite Example](http://puu.sh/iVSao.png)
+You can configure the plugin settings on the ACP page "Plugins => User Invitations". All settings are saved automagically.
 
-The list of invited users is updated whenever a user accepts an invite. You can also resend the invite or uninvite them (Expires the invitation link).
-
-#### Invite Groups (Experimental)
-
-Invite Groups will add newly registered users to the uninvited or invited group. By default, this plugin restricts forum registration to invite-only. By setting either Invite Group, this behaviour will be stopped.
-
-Setting the Uninvited Group will add all new users to that group. They are not automatically removed from this group if invited, and their group is not retroactively changed if you change this setting in the future.
-
-Setting the Invited Group will add users to that group of they are invited and accept the invitation or register.
+- **Invite Group**: When a new user registers with an invited E-mail, they will be added to this group.
+- **Restrict Registration**: This setting will prevent registrations from new users with an uninvited E-mail.
 
 ## Installation
 
-Install via the ACP Install Plugins page, or using the command line with
-
-    npm install nodebb-plugin-newuser-invitation
+Install the plugin using the "Install Plugins" page in the ACP. The package name is `nodebb-plugin-newuser-invitation`

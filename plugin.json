@@ -1,8 +1,8 @@
 {
-	"id": "nodebb-plugin-newuser-invitation",
+	"id": "nodebb-plugin-user-invitations",
 	"name": "User Invitations",
 	"description": "Allows current users to email invitations to potential new users.",
-	"url": "https://github.com/yariplus/nodebb-plugin-newuser-invitation",
+	"url": "https://github.com/yariplus/nodebb-plugin-user-invitations",
 	"library": "./library.js",
 	"staticDirs": {
 		"public": "public"
