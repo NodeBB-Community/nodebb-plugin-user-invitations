@@ -1,14 +1,22 @@
+// Super-duper function that loads the admin page or the user page.
 var	UserInvitations = function () {
 
+	// Welcome!
 	console.log("Loading User Invitations...");
 
+	// Called on ajaxify.
 	UserInvitations.init = function () {
 
+		// Load settings if on admin page, user pages are loaded in the template render.
+		if (UserInvitations.loadSettings) UserInvitations.loadSettings();
+
+		// I don't know why this exists.
 		var unavailable = [];
 
+		// User clicked on invite button.
 		function sendInvites(e) {
 
-			// Get emails.
+			// Parse emails from the textarea.
 			var	emails = $('#new-user-invite-user').val().toLowerCase().replace(/[ \t]/g, "").match(/[^,"\n\r]*@[^,"\n\r]+\.[^,"\n\r]+/g),
 				invited = getInvited();
 
@@ -24,13 +32,11 @@ var	UserInvitations = function () {
 				return !i || email !== ary[i - 1];
 			});
 
-			console.log("Sending e-mails:", emails);
-
 			socket.emit(UserInvitations.socketSend, {emails:emails}, callbackInvites);
 		}
 
 		UserInvitations.alertInvites = function (payload) {
-			if (payload.sent.length) {
+			if (payload.sent && payload.sent.length) {
 				app.alert({
 					type: 'success',
 					alert_id: 'newuser-invitation-success',
@@ -40,7 +46,8 @@ var	UserInvitations = function () {
 				});
 			}
 
-			payload.unavailable = payload.unavailable.concat(unavailable);
+			// This just concats emails that were filtered out by the server with emails filtered out by the client.
+			payload.unavailable = payload.unavailable ? payload.unavailable.concat(unavailable) : [];
 			if (payload.unavailable.length) {
 				app.alert({
 					type: 'danger',
@@ -54,6 +61,7 @@ var	UserInvitations = function () {
 
 		function callbackInvites(err, payload) {
 
+			// Something bad happened, alert the user and don't save.
 			if (err) return app.alert({
 				type: 'danger',
 				alert_id: 'fail-invitations',
@@ -67,8 +75,8 @@ var	UserInvitations = function () {
 				// Alert user.
 				UserInvitations.alertInvites(payload);
 
-				// Save to database.
-				UserInvitations.saveInvites();
+				// Save settings if on admin page.
+				if (UserInvitations.saveSettings) UserInvitations.saveSettings();
 
 				// Clear invite textarea.
 				$('#new-user-invite-user').val('');
@@ -93,7 +101,7 @@ var	UserInvitations = function () {
 					$('.email').each(function(){
 						$(this).closest('tr').remove();
 					});
-					UserInvitations.saveInvites();
+					UserInvitations.saveSettings();
 				}
 			});
 		});
@@ -103,7 +111,7 @@ var	UserInvitations = function () {
 				if (result) {
 					socket.emit(UserInvitations.socketSend, {emails:getInvited()}, function (err, payload) {
 						UserInvitations.alertInvites(payload);
-						UserInvitations.saveInvites();
+						UserInvitations.saveSettings();
 					});
 				}
 			});
@@ -113,58 +121,64 @@ var	UserInvitations = function () {
 	return UserInvitations;
 };
 
+// Define the admin page.
 define('admin/plugins/newuser-invitation', function () {
 
-	require(['settings'], function (settings) {
+	// We load the settings in init()
+	UserInvitations.loadSettings = function () {
+		require(['settings'], function (settings) {
 
-		UserInvitations.saveInvites = function () {
-			settings.persist('userinvitations', $('#userinvitations'), function () {
-				socket.emit('admin.settings.syncUserInvitations', {}, function () {
+			UserInvitations.saveSettings = function () {
+				settings.persist('userinvitations', $('#userinvitations'), function () {
+					socket.emit('admin.settings.syncUserInvitations', {}, function () {
 
-					// Clear invite textarea.
-					$('#new-user-invite-user').val('');
+						// Clear invite textarea.
+						$('#new-user-invite-user').val('');
 
+					});
 				});
-			});
-		};
+			};
 
-		UserInvitations.uninvite = function () {
-			$(this).closest('tr').remove();
-			UserInvitations.saveInvites();
-		};
+			UserInvitations.uninvite = function () {
+				$(this).closest('tr').remove();
+				UserInvitations.saveSettings();
+			};
 
-		UserInvitations.reinvite = function () {
-			socket.emit('admin.invitation.reinvite', {email:$(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")}, function (err, payload) {
-				UserInvitations.alertInvites(payload);
-			});
-		};
-
-		settings.registerPlugin({
-			types: ['inviteArray'],
-			set: function (element, value, trim) {
-				UserInvitations.addInvites(value || []);
-			},
-			get: function (element, trim, empty) {
-
-				var	values = [];
-
-				$('.invite').each(function () {
-					values.push($(this).find('.email').text());
+			UserInvitations.reinvite = function () {
+				socket.emit('admin.invitation.reinvite', {email:$(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")}, function (err, payload) {
+					UserInvitations.alertInvites(payload);
 				});
+			};
 
-				return values;
+			settings.registerPlugin({
+				types: ['inviteArray'],
+				set: function (element, value, trim) {
+					UserInvitations.addInvites(value || []);
+				},
+				get: function (element, trim, empty) {
 
-			}
+					var	values = [];
+
+					$('.invite').each(function () {
+						values.push($(this).find('.email').text());
+					});
+
+					return values;
+
+				}
+			});
+
+			$('#restrictRegistration').change(UserInvitations.saveSettings);
+			$('#inviteGroup').change(UserInvitations.saveSettings);
+
+			console.log("Loading admin settings...");
+			settings.sync('userinvitations', $('#userinvitations'));
+
 		});
-
-		settings.sync('userinvitations', $('#userinvitations'));
-
-		$('#restrictRegistration').change(UserInvitations.saveInvites);
-		$('#inviteGroup').change(UserInvitations.saveInvites);
-
-	});
+	};
 
 	UserInvitations.socketSend = 'admin.invitation.send';
+
 
 	function getInviteTemplate(next) {
 		if (UserInvitations.inviteTemplate) {
@@ -188,8 +202,11 @@ define('admin/plugins/newuser-invitation', function () {
 
 	// Add the invited user to the invited users table.
 	UserInvitations.addInvites = function (emails, next) {
+
 		getInviteTemplate(function(inviteTemplate){
+
 			if (Array.isArray(emails)) {
+
 				emails.forEach(function (email) {
 					$('#pending-invites').append(inviteTemplate.replace('{{email}}', email));
 				});
@@ -204,8 +221,8 @@ define('admin/plugins/newuser-invitation', function () {
 	return UserInvitations();
 });
 
+// Define the user page.
 define('profile/invitations', function () {
-	UserInvitations.saveInvites = function () {};
 
 	UserInvitations.uninvite = function () {
 		var that = this;
