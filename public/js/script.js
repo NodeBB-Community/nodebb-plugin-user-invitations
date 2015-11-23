@@ -179,7 +179,6 @@ define('admin/plugins/newuser-invitation', function () {
 
 	UserInvitations.socketSend = 'admin.invitation.send';
 
-
 	function getInviteTemplate(next) {
 		if (UserInvitations.inviteTemplate) {
 			next(UserInvitations.inviteTemplate);

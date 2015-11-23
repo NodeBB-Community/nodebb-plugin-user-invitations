@@ -162,11 +162,20 @@ UserInvitations.init = function(data, callback) {
 			var	email = data.email.toLowerCase();
 
 			Database.sortedSetScore('invitation:uid', email, function (err, uid) {
-				if (err || !uid) return next(err || new Error("Database error uninviting " + email));
+				if (err || !uid) return next(err || new Error("Database error reinviting " + email));
 				if (parseInt(uid, 10) !== socket.uid) return next(new Error("User not invited by you."));
 
-				sendInvite({email: email, from: socket.uid});
-				next(null, {sent: [email]});
+				Database.getObjectField('user:' + socket.uid, 'user-reinvite-cooldown', function (err, cooldown) {
+					if (err) return next(new Error("Database error reinviting " + email));
+
+					if (!cooldown || cooldown < Date.now()) {
+						sendInvite({email: email, from: socket.uid});
+						Database.setObjectField('user:' + socket.uid, 'user-reinvite-cooldown', Date.now() + 300000);
+						next(null, {sent: [email]});
+					}else{
+						next(new Error("You must wait 5 minutes before resending an invite."));
+					}
+				});
 			});
 		}
 	};
