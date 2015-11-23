@@ -16,8 +16,7 @@ Admins can also send invitations from the 'User Invitations' page in the ACP.
 
 Admins can configure additional settings from the 'User Invitations' page in the ACP. All settings are saved automagically.
 
-- **Restrict Registration**: This setting will prevent new user registrations with an uninvited E-mail.
-- **Invite Group**: When a new user registers with an invited E-mail, they will be added to this group.
+![](http://puu.sh/lw7oK.png)
 
 ## Installation
 
