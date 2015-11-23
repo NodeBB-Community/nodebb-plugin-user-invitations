@@ -1,31 +1,33 @@
 <form id="userinvitations">
 
 	<div class="panel panel-default">
-		<div class="panel-heading"><i class="fa fa-cog"></i> [[invite:title-restrict]]</div>
+		<div class="panel-heading"><i class="fa fa-cog"></i> [[invite:settings]]</div>
 		<div class="panel-body">
-			<div class="form-group col-sm-12">
-				<div id="invitedUsers" data-key="invitedUsers" data-type="inviteArray"></div>
-				<div class="checkbox">
-					<label for="restrictRegistration">
-						<input id="restrictRegistration" data-key="restrictRegistration" name="restrictRegistration" data-type="checkbox" type="checkbox" />
-						<span>[[invite:info-restrict]]</span>
-					</label>
-				</div>
-			</div>
-		</div>
-	</div>
 
-	<div class="panel panel-default">
-		<div class="panel-heading"><i class="fa fa-cog"></i> [[invite:title-invite-group]]</div>
-		<div class="panel-body">
-			<div class="form-group col-sm-12">
-				<label for="inviteGroup">[[invite:info-invite-group]]</label><br>
-				<select id="inviteGroup" data-key="inviteGroup" name="inviteGroup">
-					<!-- BEGIN groups -->
-					<option value="{groups.name}">{groups.name}</option>
-					<!-- END groups -->
-				</select>
+			<div id="invitedUsers" data-key="invitedUsers" data-type="inviteArray"></div>
+
+			<div class="checkbox">
+				<label for="restrictRegistration">
+					<input id="restrictRegistration" data-key="restrictRegistration" name="restrictRegistration" data-type="checkbox" type="checkbox" />
+					<span>[[invite:info-restrict]]</span>
+				</label>
 			</div>
+
+			<br>
+
+			<label for="inviteGroup">[[invite:info-invite-group]]</label>
+			<select id="inviteGroup" data-key="inviteGroup" name="inviteGroup" class="form-control">
+				<!-- BEGIN groups -->
+				<option value="{groups.name}">{groups.name}</option>
+				<!-- END groups -->
+			</select>
+
+			<br>
+
+			<label>[[invite:default_invitations]]</label>
+			<input id="defaultInvitations" data-key="defaultInvitations" name="defaultInvitations" class="form-control" type="number" placeholder="10" />
+
+			<br>
 		</div>
 	</div>
 

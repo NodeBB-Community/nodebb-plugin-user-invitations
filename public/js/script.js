@@ -170,6 +170,7 @@ define('admin/plugins/newuser-invitation', function () {
 
 			$('#restrictRegistration').change(UserInvitations.saveSettings);
 			$('#inviteGroup').change(UserInvitations.saveSettings);
+			$('#defaultInvitations').change(UserInvitations.saveSettings);
 
 			console.log("Loading admin settings...");
 			settings.sync('userinvitations', $('#userinvitations'));
