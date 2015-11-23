@@ -9,13 +9,16 @@
 			<div class="checkbox">
 				<label for="restrictRegistration">
 					<input id="restrictRegistration" data-key="restrictRegistration" name="restrictRegistration" data-type="checkbox" type="checkbox" />
-					<span>[[invite:info-restrict]]</span>
+					[[invite:info-restrict]]
 				</label>
 			</div>
 
 			<br>
 
-			<label for="inviteGroup">[[invite:info-invite-group]]</label>
+			<label for="inviteGroup">
+				[[invite:invite-group]]
+				<p class="help-block">[[invite:info-invite-group]]</p>
+			</label>
 			<select id="inviteGroup" data-key="inviteGroup" name="inviteGroup" class="form-control">
 				<!-- BEGIN groups -->
 				<option value="{groups.name}">{groups.name}</option>
@@ -24,7 +27,10 @@
 
 			<br>
 
-			<label>[[invite:default_invitations]]</label>
+			<label>
+				[[invite:default_invitations]]
+				<p class="help-block">[[invite:info-default_invitations]]</p>
+			</label>
 			<input id="defaultInvitations" data-key="defaultInvitations" name="defaultInvitations" class="form-control" type="number" placeholder="10" />
 
 			<br>

@@ -254,7 +254,8 @@ UserInvitations.init = function(data, callback) {
 
 	var	defaultSettings = {
 		defaultInvitations: 10,
-		restrictRegistration: 1,
+		restrictRegistration: 0,
+		inviteGroup: 'registered-users',
 		invitedUsers: []
 	};
 

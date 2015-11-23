@@ -14,11 +14,15 @@
 	"title-restrict": "Restrict Registration",
 	"title-stats": "Invitation Statistics",
 
+	"invite-group": "Add Invited Users to Group",
+	"default_invitations": "Default User Invitations",
+
 	"info-emails": "Enter the emails you want to invite below, separated by commas.",
 	"info-invited": "These E-mails have been sent an invitation, but have not yet accepted.",
 	"info-accepted": "These users have accepted your invitation. If they delete their account, you will regain your invitation.",
-	"info-invite-group": "New users will be added to the group below when they accept an invitation.",
-	"info-restrict": "Restrict forum registration to invited users only.",
+	"info-invite-group": "New registered users will be added to the group if they are invited by an Admin OR a User.",
+	"info-restrict": "Allow new registrations only if the email was invited.",
+	"info-default_invitations": "Enter the default number of emails that each user is allowed to invite.",
 
 	"button-emails": "Send Invitations",
 	"button-uninvite-all": "Uninvite All",
