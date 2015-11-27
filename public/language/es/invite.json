@@ -1,0 +1,36 @@
+{
+	"plugin-title": "Invitaciones a usuarios",
+
+	"emails": "E-mails",
+	"email": "E-mail",
+
+	"placeholder-emails": "email@ejemplo.com, email2@ejemplo.com",
+
+	"title-emails": "Enviar invitaciones",
+	"title-invited": "E-mails invitados",
+	"title-accepted": "Invitaciones aceptadas",
+	"title-invite-group": "Invitar grupos",
+	"title-bulk": "Acciones en lote",
+	"title-restrict": "Restringir registros",
+	"title-stats": "Estadísticas de invitaciones",
+
+	"invite-group": "Añadir a los usuarios invitados al grupo",
+	"default_invitations": "Invitación standard",
+
+	"info-emails": "Introduzca los emails a los que quieres invitar debajo, separados por comas.",
+	"info-invited": "Estos e-mails han recibido invitación, pero todavía no la han aceptado.",
+	"info-accepted": "Estos usuarios han aceptado tu invitación. Si se elimina su cuenta, recuperarás tu invitación.",
+	"info-invite-group": "Nuevos usuarios registrados serán añadidos al grupo si son invitados por un Admin o Usuario.",
+	"info-restrict": "Permitir nuevos registros sólo si el email fue invitado.",
+	"info-default_invitations": "Introduce el número de emails por defecto que cada usuario podrá invitar.",
+
+	"button-emails": "Enviar invitaciones",
+	"button-uninvite-all": "Cancelar todas las invitaciones",
+	"button-resend-all": "Reenviarlas todas",
+	"button-uninvite": "Cancelar invitación",
+	"button-resend": "Reenviar",
+
+	"user-available": "Invitaciones disponibles",
+	"user-pending": "Invitaciones pendientes",
+	"user-accepted": "Invitaciones aceptadas"
+}
