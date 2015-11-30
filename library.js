@@ -123,14 +123,20 @@ UserInvitations.init = function(data, callback) {
 				// Check that the user has enough available invites to send.
 				getUserInvites(socket.uid, function (err, invites) {
 					if (err) return next(new Error('[[fail_db]]'));
-
-					if (UserInvitations.settings.get('defaultInvitations') - invites.invitesPending.length - invites.invitesAccepted.length < payload.sent.length) return next(new Error('[[not_enough_invites]]'));
-
-					payload.sent.forEach(function(email){
-						sendInvite({email: email.toLowerCase(), from: socket.uid});
+					
+					User.isAdministrator(socket.uid, function(err, isAdmin){
+						if (err) {
+							return next(err);
+						}
+						if (!isAdmin) {
+							if (UserInvitations.settings.get('defaultInvitations') - invites.invitesPending.length - invites.invitesAccepted.length < payload.sent.length) return next(new Error('[[not_enough_invites]]'));
+						}
+						payload.sent.forEach(function(email){
+							sendInvite({email: email.toLowerCase(), from: socket.uid});
+						});
+	
+						next(null, payload);
 					});
-
-					next(null, payload);
 				});
 			});
 		},
@@ -185,7 +191,7 @@ UserInvitations.init = function(data, callback) {
 		// Check availability of an array of emails and send them.
 		send: function (socket, data, next) {
 
-			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
+			// if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
 			if (!data || !data.emails || !Array.isArray(data.emails)) return next(new Error('[[fail_bad_data]]'));
 
 			filterEmails(data.emails, function (err, payload) {
