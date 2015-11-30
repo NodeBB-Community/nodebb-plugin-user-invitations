@@ -8,6 +8,8 @@ var	NodeBB   = module.parent,
 	Plugins  = NodeBB.require('./plugins'),
 	Database = NodeBB.require('./database'),
 
+	translator = NodeBB.require('../public/src/modules/translator'),
+
 	Settings      = NodeBB.require('./settings'),
 	SocketAdmin   = NodeBB.require('./socket.io/admin'),
 	SocketPlugins = NodeBB.require('./socket.io/plugins'),
@@ -22,13 +24,25 @@ var	NodeBB   = module.parent,
 function prepend(msg) { return "[User-Invitations] " + msg; }
 
 function isInvitedByAdmin(email, next) {
+	email = email.toLowerCase();
 	var invitedUsers = UserInvitations.settings.get('invitedUsers');
-	if (!!~(invitedUsers ? invitedUsers.indexOf(email.toLowerCase()) : -1)) return next(null, true);
+	if (!!~(invitedUsers ? invitedUsers.indexOf(email) : -1)) return next(null, true);
 	next(null, false);
 }
 
 function isInvitedByUser(email, next) {
-	Database.isSortedSetMember('invitation:uid', email.toLowerCase(), next);
+	email = email.toLowerCase();
+	Database.isSortedSetMember('invitation:uid', email, next);
+}
+
+function isInvited(email, next) {
+	email = email.toLowerCase();
+	async.parallel({
+		isInvitedByAdmin : async.apply(isInvitedByAdmin, email),
+		isInvitedByUser  : async.apply(isInvitedByUser, email)
+	}, function (err, results) {
+		next(err, results.isInvitedByAdmin || results.isInvitedByUser);
+	});
 }
 
 // Hook: static:app.load
@@ -40,26 +54,35 @@ UserInvitations.init = function(data, callback) {
 		router     = data.router,
 		middleware = data.middleware;
 
-	// Log emailer availability.
-	function hasEmailer() { return Plugins.hasListeners('action:email.send'); }
-	if (hasEmailer()) winston.warn(prepend("No active email plugin found!"));
-
 	// Send email and update database.
 	function sendInvite(params, group) {
-		var	url = nconf.get('url') + (nconf.get('url').slice(-1) === '/' ? '' : '/');
 
-		Plugins.fireHook('action:email.send', {
-			to: params.email,
-			from: Meta.config['email:from'] || 'no-reply@localhost.lan',
-			from_name: Meta.config['email:from_name'] || 'NodeBB',
-			subject: "Invitation to join " + url,
-			html: 'Join us by visiting <a href="' + url + 'register">' + url + 'register</a>',
-			plaintext: 'Join us by visiting ' + url + 'register',
-			uid: 'none, email: ' + params.email,
-			template: "New User Invitation"
-		});
+		var	email = params.email.toLowerCase(),
+			from  = params.from || 0,
+			registerLink = nconf.get('url') + '/register';
 
-		if (params.from) Database.sortedSetAdd('invitation:uid', params.from, params.email.toLowerCase());
+		async.waterfall([
+			function(next) {
+				if (from) Database.sortedSetAdd('invitation:uid', from, email);
+				User.getUserField(from, 'username', next);
+			},
+			function(username, next) {
+				var title = Meta.config.title || Meta.config.browserTitle || 'NodeBB';
+				if (!from) username = "An admin";
+				translator.translate('[[email:invite, ' + title + ']]', Meta.config.defaultLang, function(subject) {
+					var data = {
+						site_title: title,
+						registerLink: registerLink,
+						subject: subject,
+						username: username,
+						template: 'invitation'
+					};
+
+					Emailer.sendToEmail('invitation', email, Meta.config.defaultLang, data);
+				});
+			}
+		]);
+
 	}
 
 	function filterEmails(emails, next) {
@@ -75,8 +98,7 @@ UserInvitations.init = function(data, callback) {
 			email = email.toLowerCase();
 
 			async.parallel({
-				isInvitedByAdmin: async.apply(isInvitedByAdmin, email),
-				isInvitedByUser: async.apply(isInvitedByUser, email),
+				isInvited: async.apply(isInvited, email),
 				available: async.apply(User.email.available, email)
 			}, function (err, results) {
 				if (err) {
@@ -84,7 +106,7 @@ UserInvitations.init = function(data, callback) {
 					return next();
 				}
 
-				if (!results.available || results.isInvitedByAdmin || results.isInvitedByUser) {
+				if (!results.available || results.isInvited) {
 					payload.unavailable.push(email);
 					return next();
 				}
@@ -115,7 +137,6 @@ UserInvitations.init = function(data, callback) {
 		send: function (socket, data, next) {
 
 			if (!socket.uid) return;
-			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
 			if (!data || !data.emails || !Array.isArray(data.emails) || !data.emails.length) return next(new Error('[[fail_no_emails]]'));
 
 			filterEmails(data.emails, function (err, payload) {
@@ -139,7 +160,6 @@ UserInvitations.init = function(data, callback) {
 		uninvite: function (socket, data, next) {
 
 			if (!socket.uid) return;
-			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
 			if (!(data && data.email)) return next(new Error("No email to uninvite."));
 
 			var	email = data.email.toLowerCase();
@@ -156,7 +176,6 @@ UserInvitations.init = function(data, callback) {
 		reinvite: function (socket, data, next) {
 
 			if (!socket.uid) return;
-			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
 			if (!(data && data.email)) return next(new Error("No email to reinvite."));
 
 			var	email = data.email.toLowerCase();
@@ -185,7 +204,6 @@ UserInvitations.init = function(data, callback) {
 		// Check availability of an array of emails and send them.
 		send: function (socket, data, next) {
 
-			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
 			if (!data || !data.emails || !Array.isArray(data.emails)) return next(new Error('[[fail_bad_data]]'));
 
 			filterEmails(data.emails, function (err, payload) {
@@ -199,7 +217,6 @@ UserInvitations.init = function(data, callback) {
 
 		reinvite: function (socket, data, next) {
 
-			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
 			if (!(data && data.email)) return next(new Error("No email to reinvite."));
 
 			var email = data.email.toLowerCase();
