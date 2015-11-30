@@ -191,7 +191,7 @@ UserInvitations.init = function(data, callback) {
 		// Check availability of an array of emails and send them.
 		send: function (socket, data, next) {
 
-			if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
+			// if (!hasEmailer()) return next(new Error('[[fail_no_emailer]]'));
 			if (!data || !data.emails || !Array.isArray(data.emails)) return next(new Error('[[fail_bad_data]]'));
 
 			filterEmails(data.emails, function (err, payload) {
