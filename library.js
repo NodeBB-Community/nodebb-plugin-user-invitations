@@ -333,7 +333,7 @@ UserInvitations.init = function(data, callback) {
 UserInvitations.acceptInvite = function (userData) {
 
 	var	inviteGroup = UserInvitations.settings.get('inviteGroup');
-	if (!inviteGroup) return;
+	if (!inviteGroup || !userData.email) return;
 
 	isInvited(userData.email.toLowerCase(), function (err, invited) {
 		if (err) return;
@@ -362,7 +362,7 @@ UserInvitations.acceptInvite = function (userData) {
 // Hook: filter:register.check
 UserInvitations.checkInvitation = function (data, next) {
 
-	if (!UserInvitations.settings.get('restrictRegistration')) return next(null, data);
+	if (!UserInvitations.settings.get('restrictRegistration') || !data.userData.email) return next(null, data);
 
 	var email = data.userData.email.toLowerCase();
 
