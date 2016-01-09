@@ -1,0 +1,36 @@
+{
+	"plugin-title": "User Einladungen",
+
+	"emails": "E-mails",
+	"email": "E-mail",
+
+	"placeholder-emails": "user@email.de, user2@email.de",
+
+	"title-emails": "Sende Einladungen",
+	"title-invited": "Eingeladene E-mails",
+	"title-accepted": "Akzeptierte Einladungen",
+	"title-invite-group": "Gruppe für Einladungen",
+	"title-bulk": "Sammelaktion",
+	"title-restrict": "beschränke Registrierung",
+	"title-stats": "Statistik Einladungen",
+
+	"invite-group": "eingeladene User zu folgender Gruppe hinzufügen",
+	"default_invitations": "Standart User Einladungen",
+
+	"info-emails": "E-Mails, für Einladungen hier eintragen, mehrere mit Komma trennen.",
+	"info-invited": "Diese E-Mails wurden gesendet, jedoch noch nicht akzeptiert.",
+	"info-accepted": "Diese User haben deine Einladung akzeptiert, du kannst mehr einladen, wenn sie ihren Account löschen.",
+	"info-invite-group": "Neu registrierte User werden zu einer Gruppe hinzugefügt, wenn sie von einem Admin ODER einem User eingeladen wurden.",
+	"info-restrict": "Erlaubt nur Registrierungen von E-Mails die eingeladen wurden.",
+	"info-default_invitations": "Anzahl der E-Mails, die jeder User einladen darf.",
+
+	"button-emails": "Sende Einladungen",
+	"button-uninvite-all": "alle Ausladen",
+	"button-resend-all": "Alle erneut senden",
+	"button-uninvite": "Ausladen",
+	"button-resend": "erneut senden",
+
+	"user-available": "verfügbare Einladungen",
+	"user-pending": "wartende Einladungen",
+	"user-accepted": "Akzeptierte Einladungen"
+}
