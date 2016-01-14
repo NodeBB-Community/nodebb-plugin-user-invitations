@@ -1,5 +1,6 @@
 {
 	"plugin-title": "User Einladungen",
+	"title": "Einladungen",
 
 	"emails": "E-mails",
 	"email": "E-mail",
@@ -32,5 +33,7 @@
 
 	"user-available": "verfügbare Einladungen",
 	"user-pending": "wartende Einladungen",
-	"user-accepted": "Akzeptierte Einladungen"
+	"user-accepted": "Akzeptierte Einladungen",
+	
+	"not-invited": "Nicht eingeladen:"
 }

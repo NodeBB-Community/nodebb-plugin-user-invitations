@@ -367,7 +367,7 @@ UserInvitations.checkInvitation = function (data, next) {
 	var email = data.userData.email.toLowerCase();
 
 	isInvited(email, function (err, invited) {
-		if (err || !invited) return next(new Error('[[error:not-invited]] ' + email));
+		if (err || !invited) return next(new Error('[[invite:not-invited]] ' + email));
 		next(null, data);
 	});
 };
@@ -398,7 +398,7 @@ UserInvitations.addProfileLink = function (links, next) {
 		public: true,
 		route: 'invitations',
 		icon: 'fa-envelope',
-		name: 'Invitations'
+		name: '[[invite:title]]'
 	});
 	next(null, links);
 };
