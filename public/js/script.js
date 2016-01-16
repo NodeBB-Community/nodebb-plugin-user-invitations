@@ -40,7 +40,7 @@ var	UserInvitations = function () {
 				app.alert({
 					type: 'success',
 					alert_id: 'newuser-invitation-success',
-					title: "Sent Invitation(s)",
+					title: '[[invite:success-invited]]',
 					message: payload.sent.join(', '),
 					timeout: 15000
 				});
@@ -52,7 +52,7 @@ var	UserInvitations = function () {
 				app.alert({
 					type: 'danger',
 					alert_id: 'newuser-invitation-failed',
-					title: "Already Invited",
+					title: '[[invite:already-invited]]',
 					message: payload.unavailable.join(', '),
 					timeout: 15000
 				});
@@ -65,7 +65,7 @@ var	UserInvitations = function () {
 			if (err) return app.alert({
 				type: 'danger',
 				alert_id: 'fail-invitations',
-				title: err.message,
+				title: '[[invite:failed-invitation]]',
 				timeout: 15000
 			});
 
