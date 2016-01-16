@@ -34,10 +34,12 @@
 	"user-available": "Available Invitations",
 	"user-pending": "Pending Invitations",
 	"user-accepted": "Accepted Invitations",
-	
+
 	"not-invited": "Not Invited:",
-	
+
 	"success-invited": "Invitation sent",
 	"already-invited": "Already invited",
-	"failed-invitation": "Invitation failed"
+	"failed-invitation": "Invitation failed",
+
+	"an-admin": "An Admin"
 }

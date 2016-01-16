@@ -57,31 +57,38 @@ UserInvitations.init = function(data, callback) {
 	// Send email and update database.
 	function sendInvite(params, group) {
 
-		var	email = params.email.toLowerCase(),
-			from  = params.from || 0,
-			registerLink = nconf.get('url') + '/register';
+		var	email        = params.email.toLowerCase(),
+			fromUser     = params.from,
+			registerLink = nconf.get('url') + '/register',
+			site_title   = Meta.config.title || Meta.config.browserTitle || 'NodeBB',
+			subject      = '[[email:invite, ' + site_title + ']]';
 
 		async.waterfall([
 			function(next) {
-				if (from) Database.sortedSetAdd('invitation:uid', from, email);
-				User.getUserField(from, 'username', next);
+				if (fromUser) {
+					Database.sortedSetAdd('invitation:uid', from, email);
+					User.getUserField(fromUser, 'username', next);
+				}else{
+					translator.translate("[[invite:an-admin]]", function(username) {
+						next(null, username);
+					});
+				}
 			},
 			function(username, next) {
-				var title = Meta.config.title || Meta.config.browserTitle || 'NodeBB';
-				if (!from) username = "An admin";
-				translator.translate('[[email:invite, ' + title + ']]', Meta.config.defaultLang, function(subject) {
-					var data = {
-						site_title: title,
-						registerLink: registerLink,
-						subject: subject,
-						username: username,
-						template: 'invitation'
-					};
 
-					Emailer.sendToEmail('invitation', email, Meta.config.defaultLang, data);
-				});
+				var emailData = {
+					site_title: site_title,
+					registerLink: registerLink,
+					subject: subject,
+					username: username
+				};
+
+				Emailer.sendToEmail('invitation', email, Meta.config.defaultLang, emailData, next);
+
 			}
-		]);
+		], function (err) {
+			if (err) winston.warn(err);
+		});
 
 	}
 
@@ -333,9 +340,11 @@ UserInvitations.init = function(data, callback) {
 UserInvitations.acceptInvite = function (userData) {
 
 	var	inviteGroup = UserInvitations.settings.get('inviteGroup');
+
 	if (!inviteGroup || !userData.email) return;
 
 	isInvited(userData.email.toLowerCase(), function (err, invited) {
+
 		if (err) return;
 		if (invited) Groups.join(inviteGroup, userData.uid);
 
@@ -362,6 +371,7 @@ UserInvitations.acceptInvite = function (userData) {
 // Hook: filter:register.check
 UserInvitations.checkInvitation = function (data, next) {
 
+	// We skip invitation checks if no email was provided.
 	if (!UserInvitations.settings.get('restrictRegistration') || !data.userData.email) return next(null, data);
 
 	var email = data.userData.email.toLowerCase();
