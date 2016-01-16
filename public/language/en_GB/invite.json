@@ -35,5 +35,9 @@
 	"user-pending": "Pending Invitations",
 	"user-accepted": "Accepted Invitations",
 	
-	"not-invited": "Not Invited:"
+	"not-invited": "Not Invited:",
+	
+	"success-invited": "Invitation send",
+	"already-invited": "Already invited",
+	"failed-invitation": "Invitation failed"
 }
