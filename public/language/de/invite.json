@@ -35,5 +35,9 @@
 	"user-pending": "wartende Einladungen",
 	"user-accepted": "Akzeptierte Einladungen",
 	
-	"not-invited": "Nicht eingeladen:"
+	"not-invited": "Nicht eingeladen:",
+	
+	"success-invited": "Einladung wurde gesendet",
+	"already-invited": "Wurde bereits eingeladen",
+	"failed-invitation": "Einladung ist fehlgeschlagen"
 }
