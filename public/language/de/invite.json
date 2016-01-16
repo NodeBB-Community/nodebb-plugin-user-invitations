@@ -39,5 +39,7 @@
 
 	"success-invited": "Einladung wurde gesendet",
 	"already-invited": "Wurde bereits eingeladen",
-	"failed-invitation": "Einladung ist fehlgeschlagen"
+	"failed-invitation": "Einladung ist fehlgeschlagen",
+
+	"an-admin": "Ein Administrator"
 }
