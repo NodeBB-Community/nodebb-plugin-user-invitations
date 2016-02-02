@@ -66,7 +66,7 @@ UserInvitations.init = function(data, callback) {
 		async.waterfall([
 			function(next) {
 				if (fromUser) {
-					Database.sortedSetAdd('invitation:uid', from, email);
+					Database.sortedSetAdd('invitation:uid', fromUser, email);
 					User.getUserField(fromUser, 'username', next);
 				}else{
 					translator.translate("[[invite:an-admin]]", function(username) {
