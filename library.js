@@ -8,6 +8,8 @@ var	NodeBB   = module.parent,
 	Plugins  = NodeBB.require('./plugins'),
 	Database = NodeBB.require('./database'),
 
+	nconf = NodeBB.require('nconf'),
+
 	translator = NodeBB.require('../public/src/modules/translator'),
 
 	Settings      = NodeBB.require('./settings'),
@@ -16,7 +18,6 @@ var	NodeBB   = module.parent,
 
 	fs      = require('fs'),
 	async   = require('async'),
-	nconf   = require('nconf'),
 	winston = require('winston'),
 
 	UserInvitations = module.exports;
