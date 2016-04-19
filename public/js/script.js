@@ -1,4 +1,5 @@
 // Super-duper function that loads the admin page or the user page.
+console.log("LOADED UI");
 var	UserInvitations = function () {
 
 	// Welcome!
@@ -36,12 +37,12 @@ var	UserInvitations = function () {
 		}
 
 		UserInvitations.alertInvites = function (payload) {
-			if (payload.sent && payload.sent.length) {
+			if (payload.available && payload.available.length) {
 				app.alert({
 					type: 'success',
 					alert_id: 'newuser-invitation-success',
 					title: '[[invite:success-invited]]',
-					message: payload.sent.join(', '),
+					message: payload.available.join(', '),
 					timeout: 15000
 				});
 			}
@@ -70,7 +71,7 @@ var	UserInvitations = function () {
 			});
 
 			// Add invites to table.
-			UserInvitations.addInvites(payload.sent || [], function () {
+			UserInvitations.addInvites(payload.available || [], function () {
 
 				// Alert user.
 				UserInvitations.alertInvites(payload);
@@ -83,8 +84,8 @@ var	UserInvitations = function () {
 
 				// Update profile stats list.
 				if ($('.invites-available').length) {
-					$('.invites-available').text(parseInt($('.invites-available').text()) - payload.sent.length);
-					$('.invites-pending').text(parseInt($('.invites-pending').text()) + payload.sent.length);
+					$('.invites-available').text(parseInt($('.invites-available').text()) - payload.available.length);
+					$('.invites-pending').text(parseInt($('.invites-pending').text()) + payload.available.length);
 				}
 			});
 		}
@@ -223,7 +224,7 @@ define('admin/plugins/newuser-invitation', function () {
 
 // Define the user page.
 define('profile/invitations', function () {
-
+console.log("LOADED UI PROFILE");
 	UserInvitations.uninvite = function () {
 		var that = this;
 		socket.emit('plugins.invitation.uninvite', {email: $(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")}, function (err, payload) {
