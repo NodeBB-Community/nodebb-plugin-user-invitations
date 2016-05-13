@@ -1,8 +1,8 @@
 // Super-duper function that loads the admin page or the user page.
-console.log("LOADED UI");
+// It actually sucks, doesn't it?
 var	UserInvitations = function () {
 
-	// Welcome!
+	// Welcome to Hell!
 	console.log("Loading User Invitations...");
 
 	// Called on ajaxify.
@@ -281,4 +281,20 @@ console.log("LOADED UI PROFILE");
 
 	UserInvitations().init();
 
+});
+
+$(function(){
+	console.log('doit');
+	$('#ui-admin #set-invites').click(setInvites);
+	$('#ui-admin #give-reward').click(giveReward);
+
+	function setInvites() {
+		console.log("set invites");
+		socket.emit('admin.invitation.setInvites', {uid: ajaxify.data.theirid, invites: $('#ui-admin #set-invites-amount').val()});
+	}
+
+	function giveReward() {
+		console.log("give reward");
+		socket.emit('admin.invitation.giveReward', {uid: ajaxify.data.theirid, reward: { numInvitations: $('#ui-admin #give-reward-amount').val() }});
+	}
 });

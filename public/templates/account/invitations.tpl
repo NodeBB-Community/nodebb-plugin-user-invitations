@@ -30,6 +30,22 @@
 </script>
 <!-- ENDIF yourprofile -->
 
+<!-- IF admin -->
+<div class="panel panel-default">
+	<div class="panel-heading"><i class="fa fa-cog"></i> [[invite:title-stats]]</div>
+	<div class="panel-body" id="ui-admin">
+		<div class="form-group col-sm-12">
+			<label>Set Invitations</label>
+			<input type="text" id="set-invites-amount" /><button type="button" id="set-invites">Set</button>
+		</div>
+		<div class="form-group col-sm-12">
+			<label>Give Reward</label>
+			<input type="text" id="give-reward-amount" /><button type="button" id="give-reward">Give</button>
+		</div>
+	</div>
+</div>
+<!-- ENDIF admin -->
+
 <div class="panel panel-default">
 	<div class="panel-heading"><i class="fa fa-user"></i> [[invite:title-invited, {user.name}]]</div>
 	<div class="panel-body">

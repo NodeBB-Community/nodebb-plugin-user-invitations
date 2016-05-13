@@ -26,6 +26,8 @@ function init(data, callback) {
 	nodebb.socketAdmin.invitation = {
 		send     : UserInvitations.invitations.socketio.adminSend
 	,	reinvite : UserInvitations.invitations.socketio.adminReinvite
+	,	giveReward : UserInvitations.invitations.giveReward
+	,	setInvites : UserInvitations.invitations.setInvites
 	};
 
 	UserInvitations.views.init(data, callback);
