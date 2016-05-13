@@ -6,7 +6,7 @@ var nodebb = require('./lib/nodebb');
 
 var fs   = require('fs');
 var path = require('path');
-
+// TODO: Expose only hooks.
 UserInvitations.init         = init;
 UserInvitations.conditionals = require('./lib/conditionals');
 UserInvitations.conditions   = require('./lib/conditions');
