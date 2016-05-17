@@ -40,7 +40,7 @@ var	UserInvitations = function () {
 			if (payload.available && payload.available.length) {
 				app.alert({
 					type: 'success',
-					alert_id: 'newuser-invitation-success',
+					alert_id: 'user-invitations-success',
 					title: '[[invite:success-invited]]',
 					message: payload.available.join(', '),
 					timeout: 15000
@@ -52,7 +52,7 @@ var	UserInvitations = function () {
 			if (payload.unavailable.length) {
 				app.alert({
 					type: 'danger',
-					alert_id: 'newuser-invitation-failed',
+					alert_id: 'user-invitations-failed',
 					title: '[[invite:already-invited]]',
 					message: payload.unavailable.join(', '),
 					timeout: 15000
@@ -123,7 +123,7 @@ var	UserInvitations = function () {
 };
 
 // Define the admin page.
-define('admin/plugins/newuser-invitation', function () {
+define('admin/plugins/user-invitations', function () {
 
 	// We load the settings in init()
 	UserInvitations.loadSettings = function () {

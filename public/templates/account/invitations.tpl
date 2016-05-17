@@ -98,5 +98,5 @@
 </form>
 
 <style>
-	@import url("../../plugins/nodebb-plugin-newuser-invitation/public/templates/admin/plugins/style.css");
+	@import url("../../plugins/nodebb-plugin-user-invitations/public/templates/admin/plugins/style.css");
 </style>

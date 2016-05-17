@@ -20,7 +20,7 @@ Admins can configure additional settings from the 'User Invitations' page in the
 
 ## Installation
 
-Install the plugin using the "Install Plugins" page in the ACP. The package name is `nodebb-plugin-newuser-invitation`
+Install the plugin using the "Install Plugins" page in the ACP.
 
 ## Screenshots
 

@@ -1,5 +1,5 @@
 {
-  "name": "nodebb-plugin-newuser-invitation",
+  "name": "nodebb-plugin-user-invitations",
   "version": "0.4.1",
   "description": "A NodeBB plugin allowing current users to email invitations to potential new users.",
   "main": "library.js",
