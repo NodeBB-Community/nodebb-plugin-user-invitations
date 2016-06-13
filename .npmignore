@@ -1,0 +1,9 @@
+# Tests
+coverage
+test
+
+# Dot Files
+.*
+
+# Source Files
+*.es6
