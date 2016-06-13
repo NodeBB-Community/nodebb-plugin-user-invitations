@@ -46,6 +46,7 @@
 </div>
 <!-- ENDIF admin -->
 
+<!-- IF viewInvited -->
 <div class="panel panel-default">
 	<div class="panel-heading"><i class="fa fa-user"></i> [[invite:title-invited, {user.name}]]</div>
 	<div class="panel-body">
@@ -67,6 +68,7 @@
 		</table>
 	</div>
 </div>
+<!-- ENDIF viewInvited -->
 
 <div class="panel panel-default">
 	<div class="panel-heading"><i class="fa fa-user"></i> [[invite:title-accepted, {user.name}]]</div>
