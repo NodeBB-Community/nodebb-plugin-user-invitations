@@ -4,7 +4,7 @@
 	<div class="panel-heading"><i class="fa fa-link"></i> [[invite:title-ref]]</div>
 	<div class="panel-body">
 		<div class="form-group col-sm-12">
-			{reflink}
+			<a href="#" id="reflink">{reflink}</a>
 		</div>
 	</div>
 </div>

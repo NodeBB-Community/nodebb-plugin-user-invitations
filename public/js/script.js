@@ -283,9 +283,25 @@ console.log("LOADED UI PROFILE");
 
 });
 
+/*globals app*/
+
 $(function(){
 	$('#ui-admin #set-invites').click(setInvites);
 	$('#ui-admin #give-reward').click(giveReward);
+	$('#reflink').click(() => {
+        const $temp = $("<input>");
+        $("body").append($temp);
+        $temp.val($('#reflink').text()).select();
+        document.execCommand("copy");
+        $temp.remove();
+        app.alert({
+            title: 'Success!',
+            message: 'Referral link copied to clipboard',
+            location: 'left-bottom',
+            timeout: 1000,
+            type: 'success',
+        });
+	});
 
 	function setInvites() {
 		socket.emit('admin.invitation.setInvites', {uid: ajaxify.data.theirid, invites: $('#ui-admin #set-invites-amount').val()});
