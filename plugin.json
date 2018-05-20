@@ -19,6 +19,7 @@
 
 		{ "hook": "filter:register.check",     "method": "invitations.registerCheck" },
 
+		{ "hook": "action:user.loggedIn", 	   "method": "invitations.loginCheck"},
 		{ "hook": "action:user.create",        "method": "invitations.userCreate" },
 		{ "hook": "static:user.delete",        "method": "invitations.userDelete" },
 

@@ -1,6 +1,15 @@
 <form id="userinvitations">
 
 <div class="panel panel-default">
+	<div class="panel-heading"><i class="fa fa-link"></i> [[invite:title-ref]]</div>
+	<div class="panel-body">
+		<div class="form-group col-sm-12">
+			<a href="#" id="reflink">{reflink}</a>
+		</div>
+	</div>
+</div>
+
+<div class="panel panel-default">
 	<div class="panel-heading"><i class="fa fa-cog"></i> [[invite:title-stats]]</div>
 	<div class="panel-body">
 		<div class="form-group col-sm-12">
