@@ -7,6 +7,9 @@
 	"staticDirs": {
 		"public": "public"
 	},
+  "less": [
+    "public/less/style.less"
+  ],
 	"scripts": [
 		"public/js/script.js"
 	],

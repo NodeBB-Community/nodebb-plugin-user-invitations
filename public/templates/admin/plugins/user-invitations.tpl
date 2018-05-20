@@ -71,7 +71,3 @@
 	</div>
 
 </form>
-
-<style>
-	@import url("../../plugins/nodebb-plugin-user-invitations/public/templates/admin/plugins/style.css");
-</style>
