@@ -3,7 +3,7 @@
 	"name": "User Invitations",
 	"description": "Allows current users to email invitations to potential new users.",
 	"url": "https://github.com/NodeBB-Community/nodebb-plugin-user-invitations",
-	"library": "./library.js",
+	"library": "./lib/index.js",
 	"staticDirs": {
 		"public": "public"
 	},
@@ -23,7 +23,7 @@
 		{ "hook": "action:user.create",        "method": "invitations.userCreate" },
 		{ "hook": "static:user.delete",        "method": "invitations.userDelete" },
 
-		{ "hook": "filter:user.profileLinks",  "method": "views.userProfileLinks" },
+		{ "hook": "filter:user.profileMenu",  "method": "views.userProfileMenu" },
 		{ "hook": "filter:admin.header.build", "method": "views.adminHeaderBuild" },
 
 		{ "hook": "filter:rewards.conditionals", "method": "conditionals.get" },
