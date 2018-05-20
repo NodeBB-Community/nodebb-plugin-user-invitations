@@ -34,9 +34,6 @@
 	</div>
 </div>
 
-<script>
-	require(['profile/invitations']);
-</script>
 <!-- ENDIF yourprofile -->
 
 <!-- IF admin -->

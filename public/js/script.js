@@ -1,130 +1,124 @@
 // Super-duper function that loads the admin page or the user page.
-// It actually sucks, doesn't it?
-var	UserInvitations = function () {
 
-	// Welcome to Hell!
-	console.log("Loading User Invitations...");
+console.log("User Invitations Loaded")
 
-	// Called on ajaxify.
-	UserInvitations.init = function () {
+let UserInvitations = {}
 
-		// Load settings if on admin page, user pages are loaded in the template render.
-		if (UserInvitations.loadSettings) UserInvitations.loadSettings();
+UserInvitations.init = () => {
 
-		// I don't know why this exists.
-		var unavailable = [];
+  // Load settings if on admin page, user pages are loaded in the template render.
+  if (UserInvitations.loadSettings) UserInvitations.loadSettings();
 
-		// User clicked on invite button.
-		function sendInvites(e) {
+  // I don't know why this exists.
+  var unavailable = [];
 
-			// Parse emails from the textarea.
-			var	emails = $('#new-user-invite-user').val().toLowerCase().replace(/[ \t]/g, "").match(/[^,"\n\r]*@[^,"\n\r]+\.[^,"\n\r]+/g),
-				invited = getInvited();
+  // User clicked on invite button.
+  function sendInvites(e) {
 
-			// Clear unavailable list.
-			unavailable = [];
+    // Parse emails from the textarea.
+    var	emails = $('#new-user-invite-user').val().toLowerCase().replace(/[ \t]/g, "").match(/[^,"\n\r]*@[^,"\n\r]+\.[^,"\n\r]+/g),
+      invited = getInvited();
 
-			// Filter emails that are already invited.
-			emails = emails.sort().filter(function(email, i, ary) {
-				if (invited.indexOf(email) !== -1) {
-					if (unavailable.indexOf(email) === -1) unavailable.push(email);
-					return false;
-				}
-				return !i || email !== ary[i - 1];
-			});
+    // Clear unavailable list.
+    unavailable = [];
 
-			socket.emit(UserInvitations.socketSend, {emails:emails}, callbackInvites);
-		}
+    // Filter emails that are already invited.
+    emails = emails.sort().filter(function(email, i, ary) {
+      if (invited.indexOf(email) !== -1) {
+        if (unavailable.indexOf(email) === -1) unavailable.push(email);
+        return false;
+      }
+      return !i || email !== ary[i - 1];
+    });
 
-		UserInvitations.alertInvites = function (payload) {
-			if (payload.available && payload.available.length) {
-				app.alert({
-					type: 'success',
-					alert_id: 'user-invitations-success',
-					title: '[[invite:success-invited]]',
-					message: payload.available.join(', '),
-					timeout: 15000
-				});
-			}
+    socket.emit(UserInvitations.socketSend, {emails:emails}, callbackInvites);
+  }
 
-			// This just concats emails that were filtered out by the server with emails filtered out by the client.
-			payload.unavailable = payload.unavailable ? payload.unavailable.concat(unavailable) : [];
-			if (payload.unavailable.length) {
-				app.alert({
-					type: 'danger',
-					alert_id: 'user-invitations-failed',
-					title: '[[invite:already-invited]]',
-					message: payload.unavailable.join(', '),
-					timeout: 15000
-				});
-			}
-		}
+  UserInvitations.alertInvites = function (payload) {
+    if (payload.available && payload.available.length) {
+      app.alert({
+        type: 'success',
+        alert_id: 'user-invitations-success',
+        title: '[[invite:success-invited]]',
+        message: payload.available.join(', '),
+        timeout: 15000
+      });
+    }
 
-		function callbackInvites(err, payload) {
+    // This just concats emails that were filtered out by the server with emails filtered out by the client.
+    payload.unavailable = payload.unavailable ? payload.unavailable.concat(unavailable) : [];
+    if (payload.unavailable.length) {
+      app.alert({
+        type: 'danger',
+        alert_id: 'user-invitations-failed',
+        title: '[[invite:already-invited]]',
+        message: payload.unavailable.join(', '),
+        timeout: 15000
+      });
+    }
+  }
 
-			// Something bad happened, alert the user and don't save.
-			if (err) return app.alert({
-				type: 'danger',
-				alert_id: 'fail-invitations',
-				title: '[[invite:failed-invitation]]',
-				timeout: 15000
-			});
+  function callbackInvites(err, payload) {
 
-			// Add invites to table.
-			UserInvitations.addInvites(payload.available || [], function () {
+    // Something bad happened, alert the user and don't save.
+    if (err) return app.alert({
+      type: 'danger',
+      alert_id: 'fail-invitations',
+      title: '[[invite:failed-invitation]]',
+      timeout: 15000
+    });
 
-				// Alert user.
-				UserInvitations.alertInvites(payload);
+    // Add invites to table.
+    UserInvitations.addInvites(payload.available || [], function () {
 
-				// Save settings if on admin page.
-				if (UserInvitations.saveSettings) UserInvitations.saveSettings();
+      // Alert user.
+      UserInvitations.alertInvites(payload);
 
-				// Clear invite textarea.
-				$('#new-user-invite-user').val('');
+      // Save settings if on admin page.
+      if (UserInvitations.saveSettings) UserInvitations.saveSettings();
 
-				// Update profile stats list.
-				if ($('.invites-available').length) {
-					$('.invites-available').text(parseInt($('.invites-available').text()) - payload.available.length);
-					$('.invites-pending').text(parseInt($('.invites-pending').text()) + payload.available.length);
-				}
-			});
-		}
+      // Clear invite textarea.
+      $('#new-user-invite-user').val('');
 
-		function getInvited() { return $('#pending-invites .email').map(function(){ return $(this).text().replace(/[ \t]/g, ""); }).get(); }
+      // Update profile stats list.
+      if ($('.invites-available').length) {
+        $('.invites-available').text(parseInt($('.invites-available').text()) - payload.available.length);
+        $('.invites-pending').text(parseInt($('.invites-pending').text()) + payload.available.length);
+      }
+    });
+  }
 
-		$('#new-user-invite-send').on('click', sendInvites);
-		$('#pending-invites').on('click', '.user-uninvite', function () { UserInvitations.uninvite.call(this); });
-		$('#pending-invites').on('click', '.user-reinvite', function () { UserInvitations.reinvite.call(this); });
+  function getInvited() { return $('#pending-invites .email').map(function(){ return $(this).text().replace(/[ \t]/g, ""); }).get(); }
 
-		$('#bulk-uninvite').on('click', function() {
-			bootbox.confirm("Are you sure? This will uninvite all invited users that have not yet accepted their invitation. This action is not reversible.", function (result) {
-				if (result) {
-					$('.email').each(function(){
-						$(this).closest('tr').remove();
-					});
-					UserInvitations.saveSettings();
-				}
-			});
-		});
+  $('#new-user-invite-send').on('click', sendInvites);
+  $('#pending-invites').on('click', '.user-uninvite', function () { UserInvitations.uninvite.call(this); });
+  $('#pending-invites').on('click', '.user-reinvite', function () { UserInvitations.reinvite.call(this); });
 
-		$('#bulk-reinvite').on('click', function() {
-			bootbox.confirm("Are you sure? This will reinvite all invited users that have not yet accepted their invitation.", function (result) {
-				if (result) {
-					socket.emit(UserInvitations.socketSend, {emails:getInvited()}, function (err, payload) {
-						UserInvitations.alertInvites(payload);
-						UserInvitations.saveSettings();
-					});
-				}
-			});
-		});
-	};
+  $('#bulk-uninvite').on('click', function() {
+    bootbox.confirm("Are you sure? This will uninvite all invited users that have not yet accepted their invitation. This action is not reversible.", function (result) {
+      if (result) {
+        $('.email').each(function(){
+          $(this).closest('tr').remove();
+        });
+        UserInvitations.saveSettings();
+      }
+    });
+  });
 
-	return UserInvitations;
-};
+  $('#bulk-reinvite').on('click', function() {
+    bootbox.confirm("Are you sure? This will reinvite all invited users that have not yet accepted their invitation.", function (result) {
+      if (result) {
+        socket.emit(UserInvitations.socketSend, {emails:getInvited()}, function (err, payload) {
+          UserInvitations.alertInvites(payload);
+          UserInvitations.saveSettings();
+        });
+      }
+    });
+  });
+}
 
-// Define the admin page.
-define('admin/plugins/user-invitations', function () {
-
+// Admin page.
+UserInvitations.adminPage = () => {
 	// We load the settings in init()
 	UserInvitations.loadSettings = function () {
 		require(['settings'], function (settings) {
@@ -219,12 +213,11 @@ define('admin/plugins/user-invitations', function () {
 		});
 	};
 
-	return UserInvitations();
-});
+	UserInvitations.init()
+}
 
-// Define the user page.
-define('profile/invitations', function () {
-console.log("LOADED UI PROFILE");
+// User page.
+UserInvitations.userPage = () => {
 	UserInvitations.uninvite = function () {
 		var that = this;
 		socket.emit('plugins.invitation.uninvite', {email: $(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")}, function (err, payload) {
@@ -279,13 +272,12 @@ console.log("LOADED UI PROFILE");
 		});
 	};
 
-	UserInvitations().init();
-
-});
+	UserInvitations.init()
+}
 
 /*globals app*/
 
-$(function(){
+$(()=>{
 	$('#ui-admin #set-invites').click(setInvites);
 	$('#ui-admin #give-reward').click(giveReward);
 	$('#reflink').click(() => {
@@ -310,4 +302,9 @@ $(function(){
 	function giveReward() {
 		socket.emit('admin.invitation.giveReward', {uid: ajaxify.data.theirid, reward: { numInvitations: $('#ui-admin #give-reward-amount').val() }});
 	}
-});
+})
+
+$(window).on('action:ajaxify.end', (event, data) => {
+  if (data.tpl_url === 'account/invitations') UserInvitations.userPage()
+  if (data.tpl_url === 'admin/plugins/user-invitations') UserInvitations.adminPage()
+})
