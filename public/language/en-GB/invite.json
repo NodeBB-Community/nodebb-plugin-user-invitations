@@ -1,0 +1,47 @@
+{
+	"plugin-title": "User Invitations",
+	"title": "Invitations",
+
+	"emails": "E-mails",
+	"email": "E-mail",
+
+	"placeholder-emails": "email@example.com, email2@example.com",
+
+	"title-emails": "Send Invitations",
+	"title-invited": "Invited E-mails",
+	"title-accepted": "Accepted Invitations",
+	"title-invite-group": "Invite Group",
+	"title-bulk": "Bulk Actions",
+	"title-restrict": "Restrict Registration",
+	"title-stats": "Invitation Statistics",
+	"title-ref": "Referral Link",
+	"title-admin": "Invitation Administration",
+
+	"invite-group": "Add Invited Users to Group",
+	"default_invitations": "Default User Invitations",
+
+	"info-emails": "Enter the emails you want to invite below, separated by commas.",
+	"info-invited": "These E-mails have been sent an invitation, but have not yet accepted.",
+	"info-accepted": "These users have accepted your invitation. If they delete their account, you will regain your invitation.",
+	"info-invite-group": "New registered users will be added to the group if they are invited by an Admin OR a User.",
+	"info-restrict": "Allow new registrations only if the email was invited.",
+	"info-default_invitations": "Enter the default number of emails that each user is allowed to invite.",
+
+	"button-emails": "Send Invitations",
+	"button-uninvite-all": "Uninvite All",
+	"button-resend-all": "Resend All",
+	"button-uninvite": "Uninvite",
+	"button-resend": "Resend",
+
+	"user-available": "Available Invitations",
+	"user-pending": "Pending Invitations",
+	"user-accepted": "Accepted Invitations",
+
+	"not-invited": "Not Invited:",
+
+	"success-invited": "Invitation sent",
+	"already-invited": "Already invited",
+	"failed-invitation": "Invitation failed",
+
+	"an-admin": "An Admin"
+}
