@@ -8,7 +8,7 @@
 </div>
 
 <div class="panel panel-default">
-  <div class="panel-heading"><i class="fa fa-cog"></i> [[invite:title-stats]]</div>
+  <div class="panel-heading"><i class="fa fa-bar-chart"></i> [[invite:title-stats]]</div>
   <div class="panel-body">
     <strong>[[invite:user-available, {user.name}]]:</strong> <span class="invites-available">{invitesAvailable}</span>/{maxInvites}
     <br>
@@ -29,29 +29,6 @@
 </div>
 
 <!-- ENDIF yourprofile -->
-
-<!-- IF admin -->
-<div class="panel panel-default">
-  <div class="panel-heading"><i class="fa fa-cog"></i> [[invite:title-stats]]</div>
-  <div class="panel-body" id="ui-admin">
-    <label>Set Invitations</label>
-    <div class="input-group">
-      <input type="text" class="form-control" id="set-invites-amount">
-      <span class="input-group-btn">
-        <button class="btn btn-primary" type="button" id="set-invites">Set</button>
-      </span>
-    </div>
-    <br>
-    <label>Give Reward</label>
-    <div class="input-group">
-      <input type="text" class="form-control" id="give-reward-amount">
-      <span class="input-group-btn">
-        <button class="btn btn-primary" type="button" id="give-reward">Give</button>
-      </span>
-    </div>
-  </div>
-</div>
-<!-- ENDIF admin -->
 
 <!-- IF viewInvited -->
 <div class="panel panel-default">
@@ -103,5 +80,29 @@
     </table>
   </div>
 </div>
+
+
+<!-- IF admin -->
+<div class="panel panel-default">
+  <div class="panel-heading"><i class="fa fa-cog"></i> [[invite:title-admin]]</div>
+  <div class="panel-body" id="ui-admin">
+    <label>Set Invitations</label>
+    <div class="input-group">
+      <input type="text" class="form-control" id="set-invites-amount">
+      <span class="input-group-btn">
+        <button class="btn btn-primary" type="button" id="set-invites">Set</button>
+      </span>
+    </div>
+    <br>
+    <label>Give Reward</label>
+    <div class="input-group">
+      <input type="text" class="form-control" id="give-reward-amount">
+      <span class="input-group-btn">
+        <button class="btn btn-primary" type="button" id="give-reward">Give</button>
+      </span>
+    </div>
+  </div>
+</div>
+<!-- ENDIF admin -->
 
 </form>
