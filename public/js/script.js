@@ -218,6 +218,23 @@ UserInvitations.adminPage = () => {
 
 // User page.
 UserInvitations.userPage = () => {
+  $('#ui-admin #set-invites').click(()=>socket.emit('admin.invitation.setInvites', {uid: ajaxify.data.theirid, invites: $('#ui-admin #set-invites-amount').val()}))
+	$('#ui-admin #give-reward').click(()=>socket.emit('admin.invitation.giveReward', {uid: ajaxify.data.theirid, reward: { numInvitations: $('#ui-admin #give-reward-amount').val() }}))
+	$('#reflink').click(() => {
+    const $temp = $("<input>")
+    $("body").append($temp)
+    $temp.val($('#reflink').text()).select()
+    document.execCommand("copy")
+    $temp.remove()
+    app.alert({
+      title: 'Success!',
+      message: 'Referral link copied to clipboard',
+      location: 'left-bottom',
+      timeout: 1000,
+      type: 'success',
+    })
+	})
+
 	UserInvitations.uninvite = function () {
 		var that = this;
 		socket.emit('plugins.invitation.uninvite', {email: $(this).closest('tr').find('.email').text().replace(/[ \t]/g, "")}, function (err, payload) {
@@ -274,35 +291,6 @@ UserInvitations.userPage = () => {
 
 	UserInvitations.init()
 }
-
-/*globals app*/
-
-$(()=>{
-	$('#ui-admin #set-invites').click(setInvites);
-	$('#ui-admin #give-reward').click(giveReward);
-	$('#reflink').click(() => {
-        const $temp = $("<input>");
-        $("body").append($temp);
-        $temp.val($('#reflink').text()).select();
-        document.execCommand("copy");
-        $temp.remove();
-        app.alert({
-            title: 'Success!',
-            message: 'Referral link copied to clipboard',
-            location: 'left-bottom',
-            timeout: 1000,
-            type: 'success',
-        });
-	});
-
-	function setInvites() {
-		socket.emit('admin.invitation.setInvites', {uid: ajaxify.data.theirid, invites: $('#ui-admin #set-invites-amount').val()});
-	}
-
-	function giveReward() {
-		socket.emit('admin.invitation.giveReward', {uid: ajaxify.data.theirid, reward: { numInvitations: $('#ui-admin #give-reward-amount').val() }});
-	}
-})
 
 $(window).on('action:ajaxify.end', (event, data) => {
   if (data.tpl_url === 'account/invitations') UserInvitations.userPage()
