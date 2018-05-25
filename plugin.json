@@ -1,39 +1,40 @@
 {
-	"id": "nodebb-plugin-user-invitations",
-	"name": "User Invitations",
-	"description": "Allows current users to email invitations to potential new users.",
-	"url": "https://github.com/NodeBB-Community/nodebb-plugin-user-invitations",
-	"library": "./lib/index.js",
-	"staticDirs": {
-		"public": "public"
-	},
+  "id": "nodebb-plugin-user-invitations",
+  "name": "User Invitations",
+  "description": "Allows current users to email invitations to potential new users.",
+  "url": "https://github.com/NodeBB-Community/nodebb-plugin-user-invitations",
+  "library": "./lib/index.js",
+  "staticDirs": {
+    "public": "public"
+  },
   "less": [
     "public/less/style.less"
   ],
-	"scripts": [
-		"public/js/script.js"
-	],
-	"acpScripts": [
-		"public/js/script.js"
-	],
-	"templates": "public/templates",
-	"hooks": [
-		{ "hook": "static:app.load",             "method": "views.init" },
+  "scripts": [
+    "public/js/script.js"
+  ],
+  "acpScripts": [
+    "public/js/script.js"
+  ],
+  "templates": "public/templates",
+  "hooks": [
+    { "hook": "static:app.load",             "method": "views.init" },
     { "hook": "filter:user.profileMenu",     "method": "views.userProfileMenu" },
-		{ "hook": "filter:admin.header.build",   "method": "views.adminHeaderBuild" },
-		{ "hook": "filter:register.check",       "method": "invitations.registerCheck" },
-		{ "hook": "action:user.loggedIn", 	     "method": "invitations.loginCheck"},
-		{ "hook": "action:user.create",          "method": "invitations.userCreate" },
-		{ "hook": "static:user.delete",          "method": "invitations.userDelete" },
-		{ "hook": "filter:rewards.conditionals", "method": "conditionals.get" },
-		{ "hook": "filter:rewards.conditions",   "method": "conditions.get" },
-		{ "hook": "filter:rewards.rewards",      "method": "rewards.get" },
-		{ "hook": "action:rewards.award:invite/give-invitations", "method": "rewards.giveInvitations" },
-		{ "hook": "filter:rewards.checkConditional:greaterthan",        "method": "conditionals.greaterthan" },
-		{ "hook": "filter:rewards.checkConditional:greaterorequalthan", "method": "conditionals.greaterorequalthan" },
-		{ "hook": "filter:rewards.checkConditional:lesserthan",         "method": "conditionals.lesserthan" },
-		{ "hook": "filter:rewards.checkConditional:lesserorequalthan",  "method": "conditionals.lesserorequalthan" },
-		{ "hook": "filter:rewards.checkConditional:string",             "method": "conditionals.string" }
-	],
-	"languages": "public/language"
+    { "hook": "filter:admin.header.build",   "method": "views.adminHeaderBuild" },
+    { "hook": "filter:middleware.render",    "method": "views.middlewareRender" },
+    { "hook": "filter:register.check",       "method": "invitations.registerCheck" },
+    { "hook": "action:user.loggedIn",        "method": "invitations.loginCheck"},
+    { "hook": "action:user.create",          "method": "invitations.userCreate" },
+    { "hook": "static:user.delete",          "method": "invitations.userDelete" },
+    { "hook": "filter:rewards.conditionals", "method": "conditionals.get" },
+    { "hook": "filter:rewards.conditions",   "method": "conditions.get" },
+    { "hook": "filter:rewards.rewards",      "method": "rewards.get" },
+    { "hook": "action:rewards.award:invite/give-invitations", "method": "rewards.giveInvitations" },
+    { "hook": "filter:rewards.checkConditional:greaterthan",        "method": "conditionals.greaterthan" },
+    { "hook": "filter:rewards.checkConditional:greaterorequalthan", "method": "conditionals.greaterorequalthan" },
+    { "hook": "filter:rewards.checkConditional:lesserthan",         "method": "conditionals.lesserthan" },
+    { "hook": "filter:rewards.checkConditional:lesserorequalthan",  "method": "conditionals.lesserorequalthan" },
+    { "hook": "filter:rewards.checkConditional:string",             "method": "conditionals.string" }
+  ],
+  "languages": "public/language"
 }
