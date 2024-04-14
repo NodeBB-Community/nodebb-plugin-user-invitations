@@ -1,0 +1,47 @@
+{
+	"plugin-title": "Zaproszenia przez e-mail",
+	"title": "Zaproszenia",
+
+	"emails": "Adresy e-mail",
+	"email": "E-mail",
+
+	"placeholder-emails": "email@example.com, email2@example.com",
+
+	"title-emails": "Wyślij zaproszenia",
+	"title-invited": "Zaproszone adresy e-mail",
+	"title-accepted": "Zaakceptowane zaproszenia",
+	"title-invite-group": "Zaproś grupę",
+	"title-bulk": "Zaproś wielu",
+	"title-restrict": "Ogranicz rejestrację",
+	"title-stats": "Statystyka zaproszeń",
+	"title-ref": "Odnośnik kierujący",
+	"title-admin": "Administracja zaproszeniami",
+
+	"invite-group": "Dodaj zaproszonych do grupy",
+	"default_invitations": "Domyślne zaproszenia",
+
+	"info-emails": "Wprowadź adresy email poniżej i pamiętaj przedzielić je przecinkami.",
+	"info-invited": "Adresy e-mail na które wysłano zaproszenia ale póki zaproszenia nie zostały przyjęte.",
+	"info-accepted": "To są użytkownicy, którzy przyjęli Twoje zaproszenie. O ile skasują konto to będzie można od nowa zapraszać.",
+	"info-invite-group": "Użytkownicy po założeniu konta zostaną dodanie do grupy - wszystko jedno czy zaprosił administrator czy zwykły użytkownik.",
+	"info-restrict": "Zezwól jedynie na nowe rejestracje tam gdzie zaproszenie poszło na e-mail.",
+	"info-default_invitations": "Wprowadź liczbę, która stanowić będzie ograniczenie e-maili możliwych do rozesłania przez jednego użytkownika.",
+
+	"button-emails": "Wyślij zaproszenia",
+	"button-uninvite-all": "Wycofaj wszystkie",
+	"button-resend-all": "Ponów wszystkie",
+	"button-uninvite": "Wycofaj",
+	"button-resend": "Ponów",
+
+	"user-available": "Ponów zaproszenia",
+	"user-pending": "Oczekujące zaproszenia",
+	"user-accepted": "Zaakceptowane zaproszenia",
+
+	"not-invited": "Bez zaproszenia:",
+
+	"success-invited": "Zaproszenie wysłane",
+	"already-invited": "Już zaproszony",
+	"failed-invitation": "Zaproszenie przepadło",
+
+	"an-admin": "Administrator"
+}
